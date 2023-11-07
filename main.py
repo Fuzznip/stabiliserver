@@ -10,4 +10,5 @@ app.register_blueprint(reload_cache, url_prefix = '/reload_cache')
 
 if __name__ == '__main__':
   from waitress import serve
+  print("Starting...")
   serve(app)

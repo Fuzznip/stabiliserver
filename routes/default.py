@@ -16,6 +16,7 @@ def process_json(jsonData) -> bool:
     if in_item_list(itemName):
       submit(jsonObj["playerName"], jsonObj["discordUser"]["id"], itemName, itemValue, item['quantity'])
       submitted = True
+      break
 
   return submitted
 
@@ -27,7 +28,6 @@ def handle_request():
   # Parse the payload (json data and non-screenshot stuff)
   if 'payload_json' in data:
     json_data = data['payload_json']
-    print("Parsing json data...")
     # Process the JSON data
     success = process_json(json_data)
 

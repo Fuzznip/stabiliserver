@@ -16,6 +16,7 @@ def process_json(jsonData) -> bool:
     if in_item_list(itemName):
       submit(jsonObj["playerName"], jsonObj["discordUser"]["id"], itemName, itemValue, item['quantity'])
       submitted = True
+      break
 
   return submitted
 

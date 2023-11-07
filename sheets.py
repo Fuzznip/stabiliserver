@@ -58,6 +58,5 @@ def submit(player: str, discordId: str, itemName: str, itemValue: int, itemQuant
 
 def refresh_cache():
   # Assuming data should be in column 1 of sheet
-  print("Populating item cache")
   global itemList
   itemList = readSheet.col_values(1)

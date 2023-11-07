@@ -1,4 +1,7 @@
 from flask import Flask
+from dotenv import load_dotenv
+load_dotenv()
+import os
 
 from routes.default import route_default
 from routes.reload_cache import reload_cache
@@ -11,4 +14,5 @@ app.register_blueprint(reload_cache, url_prefix = '/reload_cache')
 if __name__ == '__main__':
   from waitress import serve
   print("Starting...")
-  serve(app)
+  port = os.environ.get('PORT', 8080)
+  serve(app, host = "0.0.0.0", port = port)

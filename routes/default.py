@@ -14,8 +14,10 @@ def process_json(jsonData) -> bool:
     itemName = item['name']
     itemValue = item['priceEach']
     if in_item_list(itemName):
+      print(f"  Yeah {itemName} is in there. thats good")
       submit(jsonObj["playerName"], jsonObj["discordUser"]["id"], itemName, itemValue, item['quantity'])
-      submitted = True
+    else:
+      print(f"  Nah {itemName} isnt in there.")
 
   return submitted
 

@@ -1,6 +1,4 @@
 from flask import Flask
-from dotenv import load_dotenv
-load_dotenv()
 
 from routes.default import route_default
 from routes.reload_cache import reload_cache

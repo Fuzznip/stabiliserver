@@ -30,7 +30,7 @@ client = gspread.authorize(creds)
 doc = client.open("Clan Data")
 itemList = []
 readSheet = doc.worksheet("Item Whitelist")
-writeSheet = doc.worksheet("Drop Log")
+writeSheet = doc.worksheet(os.environ.get("OUTPUT_SHEET"))
 
 def exponential_backoff(func, max_retries = 5, base_delay = 5):
   retries = 0

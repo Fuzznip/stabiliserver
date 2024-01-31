@@ -54,7 +54,6 @@ def parse_level(data):
 #   "embeds": []
 # }
 def parse_loot(data):
-  submitted = False
   submittedItems = []
 
   # Get rsn
@@ -80,7 +79,6 @@ def parse_loot(data):
     if fuzzy_find_items(itemNameLower) is not None:
       # Submit item to database
       submit(rsn, data['discordUser']['id'], itemNameLower, itemPrice, itemQuantity)
-      submitted = True
       submittedItems.append(itemName)
 
   print("LOOT")

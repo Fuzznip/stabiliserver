@@ -85,14 +85,7 @@ def fuzzy_find_items(query: str):
   # Fuzzy find the query in the item list
   results = process.extract(query, itemList, limit = 1)
   # If there is a close match, return the match
-  if len(results) > 0 and results[0][1] > 95:
-    print(f"Found match: {results[0]}")
-    print(f"Query: {query}")
-    print(f"Item list: {itemList}")
-    print(f"Results: {results}")
-    print(f"Results[0]: {results[0]}")
-    print(f"Results[0][0]: {results[0][0]}")
-    print(f"Results[0][1]: {results[0][1]}")
+  if len(results) > 0 and results[0][1] > 90:
     return results[0]
   # Otherwise, return None
   return None

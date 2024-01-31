@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from utils.sheets import submit, fuzzy_find_items
+from utils.sheets import submit, fuzzy_find_items, is_submitted
 from dotenv import load_dotenv
 load_dotenv()
 import os
@@ -79,7 +79,8 @@ def parse_loot(data):
     if fuzzy_find_items(itemNameLower) is not None:
       # Submit item to database
       submit(rsn, data['discordUser']['id'], itemNameLower, itemPrice, itemQuantity)
-      submittedItems.append(itemName)
+      if is_submitted(itemNameLower):
+        submittedItems.append(itemName)
 
   print("LOOT")
   return submittedItems
@@ -295,8 +296,6 @@ def handle_request():
         result.raise_for_status()
       except requests.exceptions.HTTPError as err:
         print(err)
-      else:
-        print("Payload delivered successfully, code {}.".format(result.status_code))
 
   if result:
     return jsonify({"message": "Drop successfully submitted"})

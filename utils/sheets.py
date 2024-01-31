@@ -31,6 +31,8 @@ client = gspread.authorize(creds)
 # Make sure you use the right name here.
 doc = client.open("Clan Data")
 itemList = []
+trackedItemList = []
+submittedItemList = []
 readSheet = doc.worksheet(os.environ.get("INPUT_SHEET"))
 writeSheet = doc.worksheet(os.environ.get("OUTPUT_SHEET"))
 
@@ -62,6 +64,11 @@ def in_item_list(value: str) -> bool:
 def get_item_list():
   return itemList
 
+def is_submitted(value: str) -> bool:
+  global submittedItemList
+  refresh_cache()
+  return fuzzy_find(value, submittedItemList) is not None
+
 def submit(player: str, discordId: str, itemName: str, itemValue: int, itemQuantity: int) -> None:
   data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemName, itemValue, itemQuantity, itemValue * itemQuantity ]
   writeSheet.append_row(data)
@@ -70,16 +77,19 @@ def submit(player: str, discordId: str, itemName: str, itemValue: int, itemQuant
   # add_bingo_activity_log(discordId, itemName, itemValue, itemQuantity)
 
 def refresh_cache():
-  # Assuming data should be in column 1 of sheet
-  global itemList
-  itemList = readSheet.col_values(1)
-  # Lowercase all items
-  itemList = [item.lower() for item in itemList]
+  global itemList, trackedItemList, submittedItemList
+  # Get data from column 1, minus the header
+  trackedItemList = readSheet.col_values(1)[1:]
+  trackedItemList = [item.lower() for item in trackedItemList]
 
-# Fuzzy check the item list for a given query and return a close match
-def fuzzy_find_items(query: str):
-  global itemList
-  refresh_cache()
+  # Get data from column 2, minus the header
+  submittedItemList = readSheet.col_values(2)[1:]
+  submittedItemList = [item.lower() for item in submittedItemList]
+
+  # Combine the two lists and remove duplicates
+  itemList = list(set(trackedItemList + submittedItemList))
+
+def fuzzy_find(query: str, itemList: list):
   # Lowercase query
   query = query.lower()
   # Fuzzy find the query in the item list
@@ -89,3 +99,9 @@ def fuzzy_find_items(query: str):
     return results[0]
   # Otherwise, return None
   return None
+
+# Fuzzy check the item list for a given query and return a close match
+def fuzzy_find_items(query: str):
+  global itemList
+  refresh_cache()
+  return fuzzy_find(query, itemList)

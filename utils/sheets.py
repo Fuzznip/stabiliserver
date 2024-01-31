@@ -3,6 +3,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import time
 from dotenv import load_dotenv
+from thefuzz import process
+from utils.sqlite_bingo import add_bingo_activity_log
 load_dotenv()
 import os
 
@@ -29,7 +31,7 @@ client = gspread.authorize(creds)
 # Make sure you use the right name here.
 doc = client.open("Clan Data")
 itemList = []
-readSheet = doc.worksheet("Item Whitelist")
+readSheet = doc.worksheet(os.environ.get("INPUT_SHEET"))
 writeSheet = doc.worksheet(os.environ.get("OUTPUT_SHEET"))
 
 def exponential_backoff(func, max_retries = 5, base_delay = 5):
@@ -46,17 +48,51 @@ def exponential_backoff(func, max_retries = 5, base_delay = 5):
       time.sleep(delay)
   raise Exception("Exceeded maximum number of retries")
 
+def add_item_to_list(value: str) -> None:
+  global itemList
+  refresh_cache()
+  itemList.append(value)
+  exponential_backoff(lambda: readSheet.append_row([value]))
+
 def in_item_list(value: str) -> bool:
   global itemList
-  if not itemList:
-    refresh_cache()
+  refresh_cache()
   return value in itemList
+
+def get_item_list():
+  return itemList
 
 def submit(player: str, discordId: str, itemName: str, itemValue: int, itemQuantity: int) -> None:
   data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemName, itemValue, itemQuantity, itemValue * itemQuantity ]
   writeSheet.append_row(data)
 
+  # submit to database
+  # add_bingo_activity_log(discordId, itemName, itemValue, itemQuantity)
+
 def refresh_cache():
   # Assuming data should be in column 1 of sheet
   global itemList
   itemList = readSheet.col_values(1)
+  # Lowercase all items
+  itemList = [item.lower() for item in itemList]
+
+# Fuzzy check the item list for a given query and return a close match
+def fuzzy_find_items(query: str):
+  global itemList
+  refresh_cache()
+  # Lowercase query
+  query = query.lower()
+  # Fuzzy find the query in the item list
+  results = process.extract(query, itemList, limit = 1)
+  # If there is a close match, return the match
+  if len(results) > 0 and results[0][1] > 95:
+    print(f"Found match: {results[0]}")
+    print(f"Query: {query}")
+    print(f"Item list: {itemList}")
+    print(f"Results: {results}")
+    print(f"Results[0]: {results[0]}")
+    print(f"Results[0][0]: {results[0][0]}")
+    print(f"Results[0][1]: {results[0][1]}")
+    return results[0]
+  # Otherwise, return None
+  return None

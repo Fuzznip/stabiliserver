@@ -162,3 +162,4 @@ client_secret.json
 lootImage.png
 output.json
 .vscode/launch.json
+.vscode/settings.json

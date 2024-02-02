@@ -59,6 +59,8 @@ def parse_loot(data):
   # Get rsn
   rsn = data['playerName']
 
+  source = data['extra']['source']
+
   # Get item list
   items = data['extra']['items']
   # Loop through items
@@ -78,7 +80,7 @@ def parse_loot(data):
     # Check if item is in the item list
     if fuzzy_find_items(itemNameLower) is not None:
       # Submit item to database
-      submit(rsn, data['discordUser']['id'], itemNameLower, itemPrice, itemQuantity)
+      submit(rsn, data['discordUser']['id'], source, itemName, itemPrice, itemQuantity)
       if is_submitted(itemNameLower):
         submittedItems.append(itemName)
 

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from utils.sheets import submit, fuzzy_find_items, is_submitted
+from utils.sheets import submit, should_submit, should_submit_screenshot
 from dotenv import load_dotenv
 load_dotenv()
 import os
@@ -54,7 +54,7 @@ def parse_level(data):
 #   "embeds": []
 # }
 def parse_loot(data):
-  submittedItems = []
+  screenshotItems = []
 
   # Get rsn
   rsn = data['playerName']
@@ -78,14 +78,14 @@ def parse_loot(data):
     itemNameLower = itemName.lower()
     
     # Check if item is in the item list
-    if fuzzy_find_items(itemNameLower) is not None:
+    if should_submit(itemNameLower, source):
       # Submit item to database
       submit(rsn, data['discordUser']['id'], source, itemName, itemPrice, itemQuantity)
-      if is_submitted(itemNameLower):
-        submittedItems.append(itemName)
+      if should_submit_screenshot(itemNameLower):
+        screenshotItems.append(itemName)
 
   print("LOOT")
-  return submittedItems
+  return screenshotItems
 
 # function to parse slayer data
 def parse_slayer(data):

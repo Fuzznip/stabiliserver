@@ -31,8 +31,11 @@ client = gspread.authorize(creds)
 # Make sure you use the right name here.
 doc = client.open("Clan Data")
 itemList = []
+specificMonsterItemList = []
 trackedItemList = []
+specificMonsterTrackedItemList = []
 submittedItemList = []
+specificMonsterSubmittedItemList = []
 readSheet = doc.worksheet(os.environ.get("INPUT_SHEET"))
 writeSheet = doc.worksheet(os.environ.get("OUTPUT_SHEET"))
 
@@ -80,14 +83,28 @@ def refresh_cache():
   global itemList, trackedItemList, submittedItemList
   # Get data from column 1, minus the header
   trackedItemList = readSheet.col_values(1)[1:]
-  trackedItemList = [item.lower() for item in trackedItemList]
+  # If the data has a colon in it, it's a specific monster tracked item
+  # eg. "abyssal whip:abyssal demon"
+  # into an array of objects like this: { "item": "abyssal whip", "monster": "abyssal demon" }
+  # then lowercase the item and monster
+  specificMonsterTrackedItemList = [item.split(":") for item in trackedItemList if ":" in item]
+  specificMonsterTrackedItemList = [ { "item": item[0].lower(), "monster": item[1].lower() } for item in specificMonsterTrackedItemList ]
+  # remove items with a colon in it
+  trackedItemList = [item.lower() for item in trackedItemList if ":" not in item]
 
-  # Get data from column 2, minus the header
+  # Get data from column 2, minus the header and ignore any with a colon in it
   submittedItemList = readSheet.col_values(2)[1:]
-  submittedItemList = [item.lower() for item in submittedItemList]
+  # If the data has a colon in it, it's a specific monster submitted item
+  # eg. "abyssal whip:abyssal demon"
+  specificMonsterSubmittedItemList = [item.split(":") for item in submittedItemList if ":" in item]
+  specificMonsterSubmittedItemList = [ { "item": item[0].lower(), "monster": item[1].lower() } for item in specificMonsterSubmittedItemList ]
+  # remove items with a colon in it
+  submittedItemList = [item.lower() for item in submittedItemList if ":" not in item]
 
   # Combine the two lists and remove duplicates
   itemList = list(set(trackedItemList + submittedItemList))
+  # Combine the two specific monster lists and remove duplicates
+  specificMonsterTrackedItemList = list(set(specificMonsterTrackedItemList + specificMonsterSubmittedItemList))
 
 def fuzzy_find(query: str, itemList: list):
   # Lowercase query
@@ -105,3 +122,37 @@ def fuzzy_find_items(query: str):
   global itemList
   refresh_cache()
   return fuzzy_find(query, itemList)
+
+def should_submit(query: str, source: str):
+  global specificMonsterItemList
+  global itemList
+
+  # Create object of query and source
+  query = query.lower()
+  source = source.lower()
+  q = { "item": query, "monster": source }
+
+  # Check if the query is in the specific monster item list by fuzzy matching "item" and "monster"
+  for item in specificMonsterItemList:
+    if process.extractOne(q["item"], item["item"]) > 90 and process.extractOne(q["monster"], item["monster"]) > 90:
+      return True
+    
+  # if the query is not in the specific monster item list, check if the query is in the item list
+  return fuzzy_find(query, itemList)
+
+def should_submit_screenshot(query: str, source: str):
+  global specificMonsterSubmittedItemList
+  global submittedItemList
+
+  # Create object of query and source
+  query = query.lower()
+  source = source.lower()
+  q = { "item": query, "monster": source }
+
+  # Check if the query is in the specific monster item list by fuzzy matching "item" and "monster"
+  for item in specificMonsterSubmittedItemList:
+    if process.extractOne(q["item"], item["item"]) > 90 and process.extractOne(q["monster"], item["monster"]) > 90:
+      return True
+    
+  # if the query is not in the specific monster item list, check if the query is in the item list
+  return fuzzy_find(query, submittedItemList)

@@ -126,7 +126,7 @@ def parse_combat_achievement(data):
 def parse_pet(data):
   print("PET")
   # print data prettyfied
-  # print(json.dumps(data, indent = 2))
+  print(json.dumps(data, indent = 2))
   return False
 
 # function to parse speedrun data

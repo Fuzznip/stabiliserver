@@ -3,7 +3,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import time
 from dotenv import load_dotenv
-from thefuzz import process
+from thefuzz import process, fuzz
 from utils.sqlite_bingo import add_bingo_activity_log
 load_dotenv()
 import os
@@ -80,7 +80,7 @@ def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValu
   # add_bingo_activity_log(discordId, itemName, itemValue, itemQuantity)
 
 def refresh_cache():
-  global itemList, trackedItemList, submittedItemList
+  global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList
   # Get data from column 1, minus the header
   trackedItemList = readSheet.col_values(1)[1:]
   # If the data has a colon in it, it's a specific monster tracked item
@@ -103,8 +103,19 @@ def refresh_cache():
 
   # Combine the two lists and remove duplicates
   itemList = list(set(trackedItemList + submittedItemList))
-  # Combine the two specific monster lists and remove duplicates
-  specificMonsterTrackedItemList = list(set(specificMonsterTrackedItemList + specificMonsterSubmittedItemList))
+  # For each "item" in the specific monster tracked item list, if the "item" is not in the item list, add it to the item list
+  for item in specificMonsterTrackedItemList:
+    # add the item to the specific monster item list if it's not already in the item list
+    q = { "item": item["item"], "monster": item["monster"] }
+    if q not in specificMonsterItemList:
+      specificMonsterItemList.append(q)
+
+  for item in specificMonsterSubmittedItemList:
+    # add the item to the specific monster item list if it's not already in the item list
+    q = { "item": item["item"], "monster": item["monster"] }
+    if q not in specificMonsterItemList:
+      specificMonsterItemList.append(q)
+
 
 def fuzzy_find(query: str, itemList: list):
   # Lowercase query
@@ -136,7 +147,9 @@ def should_submit(query: str, source: str):
 
   # Check if the query is in the specific monster item list by fuzzy matching "item" and "monster"
   for item in specificMonsterItemList:
-    if process.extractOne(q["item"], item["item"]) > 90 and process.extractOne(q["monster"], item["monster"]) > 90:
+    itemResult = fuzz.ratio(q["item"], item["item"]) > 90
+    monsterResult = fuzz.ratio(q["monster"], item["monster"]) > 90
+    if itemResult and monsterResult:
       return True
     
   # if the query is not in the specific monster item list, check if the query is in the item list
@@ -155,7 +168,9 @@ def should_submit_screenshot(query: str, source: str):
 
   # Check if the query is in the specific monster item list by fuzzy matching "item" and "monster"
   for item in specificMonsterSubmittedItemList:
-    if process.extractOne(q["item"], item["item"]) > 90 and process.extractOne(q["monster"], item["monster"]) > 90:
+    itemResult = fuzz.ratio(q["item"], item["item"]) > 90
+    monsterResult = fuzz.ratio(q["monster"], item["monster"]) > 90
+    if itemResult and monsterResult:
       return True
     
   # if the query is not in the specific monster item list, check if the query is in the item list

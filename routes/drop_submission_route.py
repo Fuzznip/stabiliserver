@@ -81,7 +81,7 @@ def parse_loot(data):
     if should_submit(itemNameLower, source):
       # Submit item to database
       submit(rsn, data['discordUser']['id'], source, itemName, itemPrice, itemQuantity)
-      if should_submit_screenshot(itemNameLower):
+      if should_submit_screenshot(itemNameLower, source):
         screenshotItems.append(itemName)
 
   print("LOOT")

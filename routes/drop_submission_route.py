@@ -81,10 +81,11 @@ def parse_loot(data):
     if should_submit(itemNameLower, source):
       # Submit item to database
       submit(rsn, data['discordUser']['id'], source, itemName, itemPrice, itemQuantity)
+      print("LOOT: " + rsn + " - " + itemName + " (" + source + ")")
+
       if should_submit_screenshot(itemNameLower, source):
         screenshotItems.append(itemName)
 
-  print("LOOT")
   return screenshotItems
 
 # function to parse slayer data

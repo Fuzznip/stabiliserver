@@ -127,6 +127,8 @@ def should_submit(query: str, source: str):
   global specificMonsterItemList
   global itemList
 
+  refresh_cache()
+
   # Create object of query and source
   query = query.lower()
   source = source.lower()
@@ -143,6 +145,8 @@ def should_submit(query: str, source: str):
 def should_submit_screenshot(query: str, source: str):
   global specificMonsterSubmittedItemList
   global submittedItemList
+
+  refresh_cache()
 
   # Create object of query and source
   query = query.lower()

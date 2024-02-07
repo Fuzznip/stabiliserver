@@ -81,8 +81,11 @@ def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValu
 
 def refresh_cache():
   global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList
-  # Get data from column 1, minus the header
-  trackedItemList = readSheet.col_values(1)[1:]
+  # Get data from first 2 columns, minus the header
+  data = readSheet.batch_get(["A2:A", "B2:B"])
+  # Put the data from first column into trackedItemList
+  trackedItemList = [item[0] for item in data[0] if item[0] != ""]
+
   # If the data has a colon in it, it's a specific monster tracked item
   # eg. "abyssal whip:abyssal demon"
   # into an array of objects like this: { "item": "abyssal whip", "monster": "abyssal demon" }
@@ -92,8 +95,8 @@ def refresh_cache():
   # remove items with a colon in it
   trackedItemList = [item.lower() for item in trackedItemList if ":" not in item]
 
-  # Get data from column 2, minus the header and ignore any with a colon in it
-  submittedItemList = readSheet.col_values(2)[1:]
+  # Put the data from second column into submittedItemList
+  submittedItemList = [item[0] for item in data[1] if item[0] != ""]
   # If the data has a colon in it, it's a specific monster submitted item
   # eg. "abyssal whip:abyssal demon"
   specificMonsterSubmittedItemList = [item.split(":") for item in submittedItemList if ":" in item]
@@ -138,7 +141,7 @@ def should_submit(query: str, source: str):
   global specificMonsterItemList
   global itemList
 
-  refresh_cache()
+  refresh_cache() # TODO: Make this run once every 5 minutes or something
 
   # Create object of query and source
   query = query.lower()
@@ -158,8 +161,6 @@ def should_submit(query: str, source: str):
 def should_submit_screenshot(query: str, source: str):
   global specificMonsterSubmittedItemList
   global submittedItemList
-
-  refresh_cache()
 
   # Create object of query and source
   query = query.lower()

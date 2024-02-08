@@ -36,6 +36,9 @@ trackedItemList = []
 specificMonsterTrackedItemList = []
 submittedItemList = []
 specificMonsterSubmittedItemList = []
+
+thread_id_list = []
+
 readSheet = doc.worksheet(os.environ.get("INPUT_SHEET"))
 writeSheet = doc.worksheet(os.environ.get("OUTPUT_SHEET"))
 
@@ -80,9 +83,9 @@ def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValu
   # add_bingo_activity_log(discordId, itemName, itemValue, itemQuantity)
 
 def refresh_cache():
-  global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList
+  global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList, thread_id_list
   # Get data from first 2 columns, minus the header
-  data = readSheet.batch_get(["A2:A", "B2:B"])
+  data = readSheet.batch_get(["A2:A", "B2:B", "C2:C"])
   # Put the data from first column into trackedItemList
   trackedItemList = [item[0] for item in data[0] if item[0] != ""]
 
@@ -118,6 +121,9 @@ def refresh_cache():
     q = { "item": item["item"], "monster": item["monster"] }
     if q not in specificMonsterItemList:
       specificMonsterItemList.append(q)
+
+  # Grab the items from third column and put them into thread_id_list
+  thread_id_list = [item[0] for item in data[2] if item[0] != ""]
 
 
 def fuzzy_find(query: str, itemList: list):
@@ -176,3 +182,7 @@ def should_submit_screenshot(query: str, source: str):
     
   # if the query is not in the specific monster item list, check if the query is in the item list
   return fuzzy_find(query, submittedItemList)
+
+def get_thread_id_list():
+  global thread_id_list
+  return thread_id_list

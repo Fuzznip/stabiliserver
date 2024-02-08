@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from utils.sheets import submit, should_submit, should_submit_screenshot
+from utils.sheets import submit, should_submit, should_submit_screenshot, get_thread_id_list
 from dotenv import load_dotenv
 load_dotenv()
 import os
@@ -269,31 +269,52 @@ def handle_request():
     if result:
       image_required = True
 
-  if 'file' in request.files and image_required:
+  thread_id_list = get_thread_id_list()
+
+  if 'file' in request.files and image_required and len(thread_id_list) > 0:
     file = request.files['file']
     # Take payload data and image data and send it to WEBHOOK env variable
     webhook = os.environ.get("WEBHOOK")
+
     # Send the file to webhook
     data = json.loads(json_data)
     # for each item in result, send a webhook
-    for item in result:
-      payload = {
-        'embeds': [
-          {
-            'title': item + " drop",
-            "author": data['embeds'][0]['author'],
-            'image': {
-              'url': 'attachment://lootImage.png'
-            }
-          }
-        ]
+    embeds = [
+      {
+        'author': data['embeds'][0]['author'],
+        'description': '',
+        'image': {
+          'url': 'attachment://lootImage.png'
+        }
       }
+    ]
+
+    # For each item in result, add a line to the embed's description
+    for item in result:
+      embeds[0]['description'] += f"{item}\n"
+
+    # Remove the last newline character
+    if len(embeds[0]['description']) > 0:
+      embeds[0]['description'] = embeds[0]['description'][:-1]
+
+
+    # Save the image to memory
+    file.save("lootImage.png")
+
+    for thread_id in thread_id_list:
+      # Load the image from the file
+      imageData = open("lootImage.png", "rb")
 
       files = {
-        'file': (file.filename, file.stream, file.content_type)
+        'file': ('lootImage.png', imageData, 'image/png')
+      }
+      
+      payload = {
+        'embeds': embeds
       }
 
-      result = requests.post(webhook, data = {'payload_json': json.dumps(payload)}, files = files)
+      payload_link = webhook + '?thread_id=' + thread_id
+      result = requests.post(payload_link, data = {'payload_json': json.dumps(payload)}, files = files)
 
       try:
         result.raise_for_status()

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from sheets import refresh_cache
+from utils.sheets import refresh_cache
 
 reload_cache = Blueprint("reload_cache", __name__)
 

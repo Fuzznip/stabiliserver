@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import json
-from sheets import in_item_list, submit
+from utils.sheets import in_item_list, submit
 
 route_default = Blueprint("default", __name__)
 
@@ -29,7 +29,6 @@ def handle_request():
     json_data = data['payload_json']
     # Process the JSON data
     success = process_json(json_data)
-
   # Parse screenshot (if it exists)
   # TODO: Fwd screenshot data to discord webhook on successful submission to database
   # if 'file' in request.files:

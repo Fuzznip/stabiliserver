@@ -4,7 +4,6 @@ from datetime import datetime
 import time
 from dotenv import load_dotenv
 from thefuzz import process, fuzz
-from utils.sqlite_bingo import add_bingo_activity_log
 load_dotenv()
 import os
 
@@ -78,9 +77,6 @@ def is_submitted(value: str) -> bool:
 def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValue: int, itemQuantity: int) -> None:
   data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemSource, itemName, itemValue, itemQuantity, itemValue * itemQuantity ]
   writeSheet.append_row(data)
-
-  # submit to database
-  # add_bingo_activity_log(discordId, itemName, itemValue, itemQuantity)
 
 def refresh_cache():
   global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList, thread_id_list

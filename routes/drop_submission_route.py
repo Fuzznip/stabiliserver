@@ -297,7 +297,6 @@ def handle_request():
     if len(embeds[0]['description']) > 0:
       embeds[0]['description'] = embeds[0]['description'][:-1]
 
-
     # Save the image to memory
     file.save("lootImage.png")
 

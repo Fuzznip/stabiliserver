@@ -29,6 +29,8 @@ client = gspread.authorize(creds)
 # Find a workbook by name and open the first sheet
 # Make sure you use the right name here.
 doc = client.open("Clan Data")
+# lastRefresh is the last time the cache was refreshed, initialize to epoch
+lastRefresh = datetime.utcfromtimestamp(0)
 itemList = []
 specificMonsterItemList = []
 trackedItemList = []
@@ -80,6 +82,11 @@ def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValu
 
 def refresh_cache():
   global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList, thread_id_list
+  
+  # Check if the cache is older than 1 minute
+  if (datetime.utcnow() - lastRefresh).total_seconds() < 60:
+    return
+  
   # Get data from first 2 columns, minus the header
   data = readSheet.batch_get(["A2:A", "B2:B", "C2:C"])
   # Put the data from first column into trackedItemList
@@ -120,6 +127,9 @@ def refresh_cache():
 
   # Grab the items from third column and put them into thread_id_list
   thread_id_list = [item[0] for item in data[2] if item[0] != ""]
+
+  # Update the last refresh time  
+  lastRefresh = datetime.utcnow()
 
 
 def fuzzy_find(query: str, itemList: list):

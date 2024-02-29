@@ -81,7 +81,7 @@ def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValu
   writeSheet.append_row(data)
 
 def refresh_cache():
-  global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList, thread_id_list
+  global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList, thread_id_list, lastRefresh
   
   # Check if the cache is older than 1 minute
   if (datetime.utcnow() - lastRefresh).total_seconds() < 60:

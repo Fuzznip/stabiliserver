@@ -37,7 +37,6 @@ def parse_level(data):
 #     "items": [
 #       {
 #         // type of this object is SerializedItemStack
-#
 #         "id": 1234,
 #         "quantity": 1,
 #         "priceEach": 42069,
@@ -58,7 +57,11 @@ def parse_loot(data):
 
   # Get rsn
   rsn = data['playerName']
-
+  # Check if discordUser exists
+  if 'discordUser' not in data:
+    discordId = "None"
+  else:
+    discordId = data['discordUser']['id']
   source = data['extra']['source']
 
   # Get item list
@@ -80,7 +83,7 @@ def parse_loot(data):
     # Check if item is in the item list
     if should_submit(itemNameLower, source):
       # Submit item to database
-      submit(rsn, data['discordUser']['id'], source, itemName, itemPrice, itemQuantity)
+      submit(rsn, discordId, source, itemName, itemPrice, itemQuantity, "LOOT")
       print("LOOT: " + rsn + " - " + itemName + " (" + source + ")")
 
       if should_submit_screenshot(itemNameLower, source):
@@ -104,10 +107,41 @@ def parse_quest(data):
 
 # function to parse clue data
 def parse_clue(data):
-  print("CLUE")
+  screenshotItems = []
   # print data prettyfied
-  # print(json.dumps(data, indent = 2))
-  return False
+  
+  rsn = data['playerName']
+  # Check if discordUser exists
+  if 'discordUser' not in data:
+    discordId = "None"
+  else:
+    discordId = data['discordUser']['id']
+  clueType = data['extra']['clueType']
+  items = data['extra']['items']
+
+  for item in items:
+    # Get item name
+    itemName = item['name']
+    # Get item price
+    itemPrice = item['priceEach']
+    # Get item quantity
+    itemQuantity = item['quantity']
+    # Get item total
+    itemTotal = item['priceEach'] * item['quantity']
+
+    # Convert name to lowercase
+    itemNameLower = itemName.lower()
+
+    # Check if item is in the item list
+    if should_submit(itemNameLower, clueType):
+      # Submit item to database
+      submit(rsn, discordId, clueType, itemName, itemPrice, itemQuantity, "CLUE")
+      print("CLUE: " + rsn + " - " + itemName + " (" + clueType + ")")
+
+      if should_submit_screenshot(itemNameLower, clueType):
+        screenshotItems.append(itemName)
+
+  return screenshotItems
 
 # function to parse kill count data
 def parse_kill_count(data):
@@ -125,10 +159,17 @@ def parse_combat_achievement(data):
 
 # function to parse pet data
 def parse_pet(data):
-  print("PET")
   # print data prettyfied
-  print(json.dumps(data, indent = 2))
-  return False
+  rsn = data['playerName']
+  pet = data['extra']['petName']
+  # Check if discordUser exists
+  if 'discordUser' not in data:
+    discordId = "None"
+  else:
+    discordId = data['discordUser']['id']
+  submit(rsn, discordId, "PET", pet, 0, 1, "PET")
+  print("PET: " + rsn + " - " + pet)
+  return [pet]
 
 # function to parse speedrun data
 def parse_speedrun(data):
@@ -296,7 +337,6 @@ def handle_request():
     # Remove the last newline character
     if len(embeds[0]['description']) > 0:
       embeds[0]['description'] = embeds[0]['description'][:-1]
-
 
     # Save the image to memory
     file.save("lootImage.png")

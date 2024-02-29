@@ -10,7 +10,12 @@ drop_submission_route = Blueprint("stability", __name__)
 
 # function to parse death data
 def parse_death(data):
-  print("DEATH")
+  rsn = data['playerName']
+  # Check if killerName exists
+  if 'killerName' not in data['extra']:
+    print("DEATH - " + rsn)
+  else:
+    print("DEATH - " + rsn + " died to " + data['extra']['killerName'])
   # print data prettyfied
   # print(json.dumps(data, indent = 2))
   return False
@@ -100,10 +105,43 @@ def parse_slayer(data):
 
 # function to parse quest data
 def parse_quest(data):
-  print("QUEST")
+  questList = [
+    "Monkey Madness II",
+    "Dragon Slayer II",
+    "Song of the Elves",
+    "Desert Treasure II - The Fallen Empire",
+    "Legends' Quest",
+    "Monkey Madness I",
+    "Desert Treasure I",
+    "Mourning's End Part I",
+    "Mourning's End Part II",
+    "Swan Song",
+    "Dream Mentor",
+    "Grim Tales",
+    "Making Friends with My Arm",
+    "The Fremennik Exiles",
+    "Sins of the Father",
+    "A Night at the Theatre",
+    "Beneath Cursed Sands",
+    "Secrets of the North",
+  ]
+
+  rsn = data['playerName']
+  # Check if discordUser exists
+  if 'discordUser' not in data:
+    discordId = "None"
+  else:
+    discordId = data['discordUser']['id']
+
+  questName = data['extra']['questName']
+
+  if questName in questList:
+    submit(rsn, discordId, "QUEST", questName, 0, 1, "QUEST")
+    print("QUEST: " + rsn + " - " + questName)
+
   # print data prettyfied
   # print(json.dumps(data, indent = 2))
-  return False
+  return [questName]
 
 # function to parse clue data
 def parse_clue(data):

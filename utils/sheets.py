@@ -76,8 +76,8 @@ def is_submitted(value: str) -> bool:
   refresh_cache()
   return fuzzy_find(value, submittedItemList) is not None
 
-def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValue: int, itemQuantity: int) -> None:
-  data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemSource, itemName, itemValue, itemQuantity, itemValue * itemQuantity ]
+def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValue: int, itemQuantity: int, type: str) -> None:
+  data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemSource, itemName, itemValue, itemQuantity, itemValue * itemQuantity, type ]
   writeSheet.append_row(data)
 
 def refresh_cache():

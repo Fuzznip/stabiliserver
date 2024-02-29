@@ -138,10 +138,11 @@ def parse_quest(data):
   if questName in questList:
     submit(rsn, discordId, "QUEST", questName, 0, 1, "QUEST")
     print("QUEST: " + rsn + " - " + questName)
+    return [questName]
 
   # print data prettyfied
   # print(json.dumps(data, indent = 2))
-  return [questName]
+  return []
 
 # function to parse clue data
 def parse_clue(data):

@@ -191,10 +191,14 @@ def parse_kill_count(data):
 
 # function to parse combat achievement data
 def parse_combat_achievement(data):
-  print("COMBAT_ACHIEVEMENT")
   # print data prettyfied
   # print(json.dumps(data, indent = 2))
-  return False
+  rsn = data['playerName']
+  achievement = data['extra']['task']
+  tier = data['extra']['tier']
+
+  print("COMBAT_ACHIEVEMENT: " + rsn + " - " + achievement + " (" + tier + ")")
+  return []
 
 # function to parse pet data
 def parse_pet(data):

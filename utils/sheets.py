@@ -37,6 +37,7 @@ trackedItemList = []
 specificMonsterTrackedItemList = []
 submittedItemList = []
 specificMonsterSubmittedItemList = []
+itemBlacklist = []
 
 thread_id_list = []
 
@@ -81,14 +82,14 @@ def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValu
   writeSheet.append_row(data)
 
 def refresh_cache():
-  global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList, thread_id_list, lastRefresh
+  global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList, thread_id_list, lastRefresh, itemBlacklist
   
   # Check if the cache is older than 1 minute
   if (datetime.utcnow() - lastRefresh).total_seconds() < 60:
     return
   
   # Get data from first 2 columns, minus the header
-  data = readSheet.batch_get(["A2:A", "B2:B", "C2:C"])
+  data = readSheet.batch_get(["A2:A", "B2:B", "C2:C", "D2:D"])
   # Put the data from first column into trackedItemList
   trackedItemList = [item[0] for item in data[0] if item[0] != ""]
 
@@ -128,13 +129,20 @@ def refresh_cache():
   # Grab the items from third column and put them into thread_id_list
   thread_id_list = [item[0] for item in data[2] if item[0] != ""]
 
+  # Grab the items from fourth column, lowercase them, and put them into itemBlacklist
+  itemBlacklist = [item[0].lower() for item in data[3] if item[0] != ""]
+
   # Update the last refresh time  
   lastRefresh = datetime.utcnow()
-
 
 def fuzzy_find(query: str, itemList: list):
   # Lowercase query
   query = query.lower()
+
+  # If the query is in the blacklist, return None
+  if query in itemBlacklist:
+    return None
+
   # Fuzzy find the query in the item list
   results = process.extract(query, itemList, limit = 1)
   # If there is a close match, return the match
@@ -162,7 +170,7 @@ def should_submit(query: str, source: str):
 
   # Check if the query is in the specific monster item list by fuzzy matching "item" and "monster"
   for item in specificMonsterItemList:
-    itemResult = fuzz.ratio(q["item"], item["item"]) > 90
+    itemResult = fuzz.ratio(q["item"], item["item"]) > 90 and q["item"] not in itemBlacklist
     monsterResult = fuzz.ratio(q["monster"], item["monster"]) > 90
     if itemResult and monsterResult:
       return True

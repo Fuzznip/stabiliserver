@@ -178,7 +178,9 @@ def parse_clue(data):
       print("CLUE: " + rsn + " - " + itemName + " (" + clueType + ")")
 
       if should_submit_screenshot(itemNameLower, clueType):
-        screenshotItems.append(itemName)
+        # Disable screenshotting for now
+        # screenshotItems.append(itemName)
+        pass
 
   return screenshotItems
 

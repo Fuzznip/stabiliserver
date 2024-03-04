@@ -84,12 +84,12 @@ def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValu
 
 def refresh_cache():
   global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList, thread_id_list, lastRefresh, itemBlacklist, sourceBlacklist
-  
+
   # Check if the cache is older than 1 minute
   if (datetime.utcnow() - lastRefresh).total_seconds() < 60:
     return
   
-  # Get data from first 2 columns, minus the header
+  # Get data from first 5 columns, minus the header
   data = readSheet.batch_get(["A2:A", "B2:B", "C2:C", "D2:D", "E2:E"])
   # Put the data from first column into trackedItemList
   trackedItemList = [item[0] for item in data[0] if item[0] != ""]
@@ -135,7 +135,7 @@ def refresh_cache():
 
   # Grab the items from fifth column, lowercase them, and put them into sourceBlacklist
   sourceBlacklist = [item[0].lower() for item in data[4] if item[0] != ""]
-
+  
   # Update the last refresh time  
   lastRefresh = datetime.utcnow()
 
@@ -178,7 +178,7 @@ def should_submit(query: str, source: str):
 
   # Check if the query is in the specific monster item list by fuzzy matching "item" and "monster"
   for item in specificMonsterItemList:
-    itemResult = fuzz.ratio(q["item"], item["item"]) > 90
+    itemResult = fuzz.ratio(q["item"], item["item"]) > 90 and q["item"] not in itemBlacklist
     monsterResult = fuzz.ratio(q["monster"], item["monster"]) > 90
     if itemResult and monsterResult:
       return True

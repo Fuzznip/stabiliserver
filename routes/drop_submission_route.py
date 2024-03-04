@@ -351,7 +351,12 @@ def handle_request():
 
   if 'payload_json' in data:
     json_data = data['payload_json']
-    result = parse_json_data(json_data)
+    try:
+      result = parse_json_data(json_data)
+    except Exception as e:
+      print("Error parsing JSON data: " + str(e))
+      print(json.dumps(json_data, indent = 2))
+      return jsonify({"message": "Error parsing JSON data: " + str(e)})
     if result:
       image_required = True
 

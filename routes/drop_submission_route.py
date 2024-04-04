@@ -207,14 +207,18 @@ def parse_pet(data):
   # print data prettyfied
   rsn = data['playerName']
   pet = data['extra']['petName']
+  output = []
   # Check if discordUser exists
   if 'discordUser' not in data:
     discordId = "None"
   else:
     discordId = data['discordUser']['id']
-  submit(rsn, discordId, "PET", pet, 0, 1, "PET")
+
+  if should_submit(pet, "PET"):
+    submit(rsn, discordId, "PET", pet, 0, 1, "PET")
+    output = [pet]
   print("PET: " + rsn + " - " + pet)
-  return [pet]
+  return output
 
 # function to parse speedrun data
 def parse_speedrun(data):
@@ -351,7 +355,12 @@ def handle_request():
 
   if 'payload_json' in data:
     json_data = data['payload_json']
-    result = parse_json_data(json_data)
+    try:
+      result = parse_json_data(json_data)
+    except Exception as e:
+      print("Error parsing JSON data: " + str(e))
+      print(json.dumps(json_data, indent = 2))
+      return jsonify({"message": "Error parsing JSON data: " + str(e)})
     if result:
       image_required = True
 

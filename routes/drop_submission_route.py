@@ -207,14 +207,18 @@ def parse_pet(data):
   # print data prettyfied
   rsn = data['playerName']
   pet = data['extra']['petName']
+  output = []
   # Check if discordUser exists
   if 'discordUser' not in data:
     discordId = "None"
   else:
     discordId = data['discordUser']['id']
-  submit(rsn, discordId, "PET", pet, 0, 1, "PET")
+
+  if should_submit(pet, "PET"):
+    submit(rsn, discordId, "PET", pet, 0, 1, "PET")
+    output = [pet]
   print("PET: " + rsn + " - " + pet)
-  return [pet]
+  return output
 
 # function to parse speedrun data
 def parse_speedrun(data):

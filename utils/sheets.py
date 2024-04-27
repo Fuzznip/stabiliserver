@@ -140,9 +140,9 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[
     return threadList
 
   # Check if the query is in the drop dictionary without a specific source
-  print((item.lower(), ""))
-  print(item.lower())
-  if (item.lower(), "") in dropDictionary:
+  query = (item.lower(), "")
+  print(query)
+  if query in dropDictionary:
     threadList: list[str] = dropDictionary[query]
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
     print(type + ": " + rsn + " - " + item + " (" + source + ")")

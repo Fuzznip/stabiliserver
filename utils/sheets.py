@@ -123,6 +123,8 @@ def write(player: str, discordId: str, itemSource: str, itemName: str, itemValue
 # Return value in the form of a list of tuples of item names to their lists of output ids
 def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[str]:
   refresh_cache()
+  # print out the drop dictionary
+  print(dropDictionary)
 
   # Create a query for the item and source
   query = (item.lower(), source.lower())
@@ -156,4 +158,4 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[
 
   print("\titem not in trackedItems")
 
-  return None
+  return []

@@ -125,8 +125,7 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[
   refresh_cache()
   # Create a query for the item and source
   query = (item.lower(), source.lower())
-  print(query)
-  print(dropDictionary)
+  
   # TODO: Check blacklists
 
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import json
-from utils.sheets import in_item_list, submit
+from utils.sheets import submit
 
 route_default = Blueprint("default", __name__)
 

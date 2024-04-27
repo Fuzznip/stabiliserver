@@ -56,7 +56,7 @@ def exponential_backoff(func, max_retries = 5, base_delay = 5):
   raise Exception("Exceeded maximum number of retries")
 
 def refresh_cache():
-  global lastRefresh, trackedItems
+  global lastRefresh, trackedItems, dropDictionary
 
   # Check if the cache is older than 1 minute
   if (datetime.utcnow() - lastRefresh).total_seconds() < 60:

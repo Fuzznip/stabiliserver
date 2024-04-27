@@ -376,6 +376,9 @@ def handle_request():
     file.save("lootImage.png")
 
     for threadId, itemList in result.items():
+      print(threadId)
+      print(itemList)
+
       # for each item in result, send a webhook
       embeds = [
         {

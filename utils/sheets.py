@@ -3,7 +3,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import time
 from dotenv import load_dotenv
-from thefuzz import process, fuzz
 load_dotenv()
 import os
 
@@ -29,18 +28,15 @@ client = gspread.authorize(creds)
 # Find a workbook by name and open the first sheet
 # Make sure you use the right name here.
 doc = client.open("Clan Data")
+
 # lastRefresh is the last time the cache was refreshed, initialize to epoch
 lastRefresh = datetime.utcfromtimestamp(0)
-itemList = []
-specificMonsterItemList = []
-trackedItemList = []
-specificMonsterTrackedItemList = []
-submittedItemList = []
-specificMonsterSubmittedItemList = []
-itemBlacklist = []
-sourceBlacklist = []
 
-thread_id_list = []
+trackedItems = []
+
+# dropDictionary is a dictionary of pairs of items and drop sources to the list of channels they should post in
+# eg. { ("abyssal whip", "abyssal demon"): [ "1233130963870154864", "1232048319996625029", ... ] }
+dropDictionary: dict[tuple[str, str], list[str]] = {}
 
 readSheet = doc.worksheet(os.environ.get("INPUT_SHEET"))
 writeSheet = doc.worksheet(os.environ.get("OUTPUT_SHEET"))
@@ -59,152 +55,99 @@ def exponential_backoff(func, max_retries = 5, base_delay = 5):
       time.sleep(delay)
   raise Exception("Exceeded maximum number of retries")
 
-def add_item_to_list(value: str) -> None:
-  global itemList
-  refresh_cache()
-  itemList.append(value)
-  exponential_backoff(lambda: readSheet.append_row([value]))
-
-def in_item_list(value: str) -> bool:
-  global itemList
-  refresh_cache()
-  return value in itemList
-
-def get_item_list():
-  return itemList
-
-def is_submitted(value: str) -> bool:
-  global submittedItemList
-  refresh_cache()
-  return fuzzy_find(value, submittedItemList) is not None
-
-def submit(player: str, discordId: str, itemSource: str, itemName: str, itemValue: int, itemQuantity: int, type: str) -> None:
-  data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemSource, itemName, itemValue, itemQuantity, itemValue * itemQuantity, type ]
-  writeSheet.append_row(data)
-
 def refresh_cache():
-  global itemList, trackedItemList, submittedItemList, specificMonsterItemList, specificMonsterSubmittedItemList, specificMonsterTrackedItemList, thread_id_list, lastRefresh, itemBlacklist, sourceBlacklist
+  global lastRefresh, trackedItems, dropDictionary
 
   # Check if the cache is older than 1 minute
   if (datetime.utcnow() - lastRefresh).total_seconds() < 60:
     return
   
-  # Get data from first 5 columns, minus the header
-  data = readSheet.batch_get(["A2:A", "B2:B", "C2:C", "D2:D", "E2:E"])
-  # Put the data from first column into trackedItemList
-  trackedItemList = [item[0] for item in data[0] if item[0] != ""]
+  # Clear the tracked items and drop dictionary
+  trackedItems = []
+  dropDictionary = {}
 
-  # If the data has a colon in it, it's a specific monster tracked item
-  # eg. "abyssal whip:abyssal demon"
-  # into an array of objects like this: { "item": "abyssal whip", "monster": "abyssal demon" }
-  # then lowercase the item and monster
-  specificMonsterTrackedItemList = [item.split(":") for item in trackedItemList if ":" in item]
-  specificMonsterTrackedItemList = [ { "item": item[0].lower(), "monster": item[1].lower() } for item in specificMonsterTrackedItemList ]
-  # remove items with a colon in it
-  trackedItemList = [item.lower() for item in trackedItemList if ":" not in item]
+  # Get data from the first column of the sheet except the first row, lower case it, and store it in trackedItems
+  trackedItems = [item.lower() for item in readSheet.col_values(1)[1:]]
+  # Get data from the rest of the columns (B, C, D, ...) and store it in inputColumns
+  inputColumns = readSheet.get_all_values()
+  # Transpose the inputColumns to convert from a list of rows to a list of columns
+  inputColumns = list(map(list, zip(*inputColumns)))
+  # Remove the first column (the tracked items) from the inputColumns
+  inputColumns = inputColumns[1:]
 
-  # Put the data from second column into submittedItemList
-  submittedItemList = [item[0] for item in data[1] if item[0] != ""]
-  # If the data has a colon in it, it's a specific monster submitted item
-  # eg. "abyssal whip:abyssal demon"
-  specificMonsterSubmittedItemList = [item.split(":") for item in submittedItemList if ":" in item]
-  specificMonsterSubmittedItemList = [ { "item": item[0].lower(), "monster": item[1].lower() } for item in specificMonsterSubmittedItemList ]
-  # remove items with a colon in it
-  submittedItemList = [item.lower() for item in submittedItemList if ":" not in item]
+  # For each input column, iterate through the rows and insert the data into the drop dictionary
+  for column in inputColumns:
+    # Grab the first row of the column to get the output id
+    outputId = column[0]
+    # Grab the rest of the rows to get the input data
+    inputRows: list[str] = column[1:]
+    # For each row in the input data, insert it into the drop dictionary
+    for row in inputRows:
+      # If the row is empty, skip it
+      if row == "":
+        continue
 
-  # Combine the two lists and remove duplicates
-  itemList = list(set(trackedItemList + submittedItemList))
-  # For each "item" in the specific monster tracked item list, if the "item" is not in the item list, add it to the item list
-  for item in specificMonsterTrackedItemList:
-    # add the item to the specific monster item list if it's not already in the item list
-    q = { "item": item["item"], "monster": item["monster"] }
-    if q not in specificMonsterItemList:
-      specificMonsterItemList.append(q)
+      # Parse the row in the format "(-)item:source" 
+      # (-) is optional and indicates whether the item should be blacklisted
+      # item is the item name
+      # source is the source of the drop
 
-  for item in specificMonsterSubmittedItemList:
-    # add the item to the specific monster item list if it's not already in the item list
-    q = { "item": item["item"], "monster": item["monster"] }
-    if q not in specificMonsterItemList:
-      specificMonsterItemList.append(q)
+      # If the row starts with a "-" character, add the item to the blacklist and skip it
 
-  # Grab the items from third column and put them into thread_id_list
-  thread_id_list = [item[0] for item in data[2] if item[0] != ""]
 
-  # Grab the items from fourth column, lowercase them, and put them into itemBlacklist
-  itemBlacklist = [item[0].lower() for item in data[3] if item[0] != ""]
+      # Split the row into the item and source
+      # If the item has no source, set the source to ""
+      if ":" not in row:
+        item = row
+        source = ""
+      else:
+        item, source = row.split(":")
+      # Lowercase the item and source
+      item = item.lower()
+      source = source.lower()
 
-  # Grab the items from fifth column, lowercase them, and put them into sourceBlacklist
-  sourceBlacklist = [item[0].lower() for item in data[4] if item[0] != ""]
-  
+      # If the (item, source) pair is not in the drop dictionary, create a new list for it with the output id
+      if (item, source) not in dropDictionary:
+        dropDictionary[(item, source)] = [outputId]
+      # Otherwise, append the output id to the list
+      else:
+        dropDictionary[(item, source)].append(outputId)
+        
   # Update the last refresh time  
   lastRefresh = datetime.utcnow()
 
-def fuzzy_find(query: str, itemList: list):
-  # Lowercase query
-  query = query.lower()
+def write(player: str, discordId: str, itemSource: str, itemName: str, itemValue: int, itemQuantity: int, type: str) -> None:
+  data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemSource, itemName, itemValue, itemQuantity, itemValue * itemQuantity, type ]
+  writeSheet.append_row(data)
 
-  # If the query is in the blacklist, return None
-  if query in itemBlacklist:
-    return None
-
-  # Fuzzy find the query in the item list
-  results = process.extract(query, itemList, limit = 1)
-  # If there is a close match, return the match
-  if len(results) > 0 and results[0][1] > 90:
-    return results[0]
-  # Otherwise, return None
-  return None
-
-# Fuzzy check the item list for a given query and return a close match
-def fuzzy_find_items(query: str):
-  global itemList
+# Return value in the form of a list of tuples of item names to their lists of output ids
+def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[str]:
   refresh_cache()
-  return fuzzy_find(query, itemList)
+  
+  # Create a query for the item and source
+  query = (item.lower(), source.lower())
 
-def should_submit(query: str, source: str):
-  global specificMonsterItemList
-  global itemList
+  # TODO: Check blacklists
 
-  refresh_cache() # TODO: Make this run once every 5 minutes or something
 
-  # Create object of query and source
-  query = query.lower()
-  source = source.lower()
+  # Check if the query is in the drop dictionary
+  if query in dropDictionary:
+    threadList: list[str] = dropDictionary[query]
+    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
+    print(type + ": " + rsn + " - " + item + " (" + source + ")")
+    return threadList
 
-  if source in sourceBlacklist:
-    return False
+  # Check if the query is in the drop dictionary without a specific source
+  query = (item.lower(), "")
+  if query in dropDictionary:
+    threadList: list[str] = dropDictionary[query]
+    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
+    print(type + ": " + rsn + " - " + item + " (" + source + ")")
+    return threadList
+  
+  # If the query is not in the drop dictionary, check if the item is in the tracked items
+  if item.lower() in trackedItems:
+    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
+    print(type + ": " + rsn + " - " + item + " (" + source + ")")
 
-  q = { "item": query, "monster": source }
-
-  # Check if the query is in the specific monster item list by fuzzy matching "item" and "monster"
-  for item in specificMonsterItemList:
-    itemResult = fuzz.ratio(q["item"], item["item"]) > 90 and q["item"] not in itemBlacklist
-    monsterResult = fuzz.ratio(q["monster"], item["monster"]) > 90
-    if itemResult and monsterResult:
-      return True
-    
-  # if the query is not in the specific monster item list, check if the query is in the item list
-  return fuzzy_find(query, itemList)
-
-def should_submit_screenshot(query: str, source: str):
-  global specificMonsterSubmittedItemList
-  global submittedItemList
-
-  # Create object of query and source
-  query = query.lower()
-  source = source.lower()
-  q = { "item": query, "monster": source }
-
-  # Check if the query is in the specific monster item list by fuzzy matching "item" and "monster"
-  for item in specificMonsterSubmittedItemList:
-    itemResult = fuzz.ratio(q["item"], item["item"]) > 90
-    monsterResult = fuzz.ratio(q["monster"], item["monster"]) > 90
-    if itemResult and monsterResult:
-      return True
-    
-  # if the query is not in the specific monster item list, check if the query is in the item list
-  return fuzzy_find(query, submittedItemList)
-
-def get_thread_id_list():
-  global thread_id_list
-  return thread_id_list
+  return []

@@ -131,31 +131,24 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[
 
   # TODO: Check blacklists
 
-  print(f"Query: {query}")
 
   # Check if the query is in the drop dictionary
   if query in dropDictionary:
     threadList: list[str] = dropDictionary[query]
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
-    print(f"\tquery in dropDictionary: {threadList}")
+    print(type + ": " + rsn + " - " + item + " (" + source + ")")
     return threadList
-    
-  print("\tquery not in dropDictionary")
 
   # Check if the query is in the drop dictionary without a specific source
   if (item.lower(), "") in dropDictionary:
     threadList: list[str] = dropDictionary[query]
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
-    print(f"\tquery in dropDictionary without source: {threadList}")
+    print(type + ": " + rsn + " - " + item + " (" + source + ")")
     return threadList
-  
-  print("\tquery not in dropDictionary without source")
   
   # If the query is not in the drop dictionary, check if the item is in the tracked items
   if item.lower() in trackedItems:
-    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
-    print("\titem in trackedItems")
-
-  print("\titem not in trackedItems")
+    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)  
+    print(type + ": " + rsn + " - " + item + " (" + source + ")")
 
   return []

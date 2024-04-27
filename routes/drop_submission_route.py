@@ -85,13 +85,9 @@ def parse_loot(data) -> dict[str, list[str]]:
     # Check if item is in the item list
     threadIds = submit(rsn, discordId, source, itemName, itemPrice, itemQuantity, "LOOT")
     for threadId in threadIds:
-      print(threadId)
       if threadId not in screenshotItems:
         screenshotItems[threadId] = []
-        print("\tCreating new threadId: " + threadId)
       screenshotItems[threadId].append(itemName)
-      print("\tAdding item to threadId: " + itemName)
-      print("LOOT: " + rsn + " - " + itemName + " (" + source + ")")
 
   return screenshotItems
 
@@ -141,7 +137,6 @@ def parse_quest(data) -> dict[str, list[str]]:
     if threadId not in screenshotItems:
       screenshotItems[threadId] = []
     screenshotItems[threadId].append(questName)
-    print("QUEST: " + rsn + " - " + questName)
 
   # print data prettyfied
   # print(json.dumps(data, indent = 2))
@@ -180,7 +175,6 @@ def parse_clue(data) -> dict[str, list[str]]:
       if threadId not in screenshotItems:
         screenshotItems[threadId] = []
       screenshotItems[threadId].append(itemName)
-      print("CLUE: " + rsn + " - " + itemName + " (" + clueType + ")")
 
   return screenshotItems
 
@@ -219,7 +213,6 @@ def parse_pet(data) -> dict[str, list[str]]:
     if threadId not in screenshotItems:
       screenshotItems[threadId] = []
     screenshotItems[threadId].append(pet)
-    print("PET: " + rsn + " - " + pet)
 
   return screenshotItems
 
@@ -379,9 +372,6 @@ def handle_request():
     file.save("lootImage.png")
 
     for threadId, itemList in result.items():
-      print(threadId)
-      print(itemList)
-
       # for each item in result, send a webhook
       embeds = [
         {

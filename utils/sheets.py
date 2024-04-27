@@ -68,23 +68,19 @@ def refresh_cache():
 
   # Get data from the first column of the sheet except the first row, lower case it, and store it in trackedItems
   trackedItems = [item.lower() for item in readSheet.col_values(1)[1:]]
-  print(trackedItems)
   # Get data from the rest of the columns (B, C, D, ...) and store it in inputColumns
   inputColumns = readSheet.get_all_values()
   # Transpose the inputColumns to convert from a list of rows to a list of columns
   inputColumns = list(map(list, zip(*inputColumns)))
   # Remove the first column (the tracked items) from the inputColumns
   inputColumns = inputColumns[1:]
-  
-  print(inputColumns)
+
   # For each input column, iterate through the rows and insert the data into the drop dictionary
   for column in inputColumns:
     # Grab the first row of the column to get the output id
     outputId = column[0]
-    print(outputId)
     # Grab the rest of the rows to get the input data
     inputRows: list[str] = column[1:]
-    print(inputRows)
     # For each row in the input data, insert it into the drop dictionary
     for row in inputRows:
       # If the row is empty, skip it
@@ -112,11 +108,9 @@ def refresh_cache():
 
       # If the (item, source) pair is not in the drop dictionary, create a new list for it with the output id
       if (item, source) not in dropDictionary:
-        print("adding " + item + ", " + source + " | " + outputId + " to dropDictionary")
         dropDictionary[(item, source)] = [outputId]
       # Otherwise, append the output id to the list
       else:
-        print("appending " + item + ", " + source + " | " + outputId + " to dropDictionary")
         dropDictionary[(item, source)].append(outputId)
   
   # Update the last refresh time  
@@ -135,20 +129,31 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[
 
   # TODO: Check blacklists
 
+  print(f"Query: {query}")
+
   # Check if the query is in the drop dictionary
   if query in dropDictionary:
     threadList: list[str] = dropDictionary[query]
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
+    print(f"\tquery in dropDictionary: {threadList}")
     return threadList
     
+  print("\tquery not in dropDictionary")
+
   # Check if the query is in the drop dictionary without a specific source
   if (item.lower(), "") in dropDictionary:
     threadList: list[str] = dropDictionary[query]
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
+    print(f"\tquery in dropDictionary without source: {threadList}")
     return threadList
+  
+  print("\tquery not in dropDictionary without source")
   
   # If the query is not in the drop dictionary, check if the item is in the tracked items
   if item.lower() in trackedItems:
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
+    print("\titem in trackedItems")
+
+  print("\titem not in trackedItems")
 
   return None

@@ -141,6 +141,7 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[
 
   # Check if the query is in the drop dictionary without a specific source
   print((item.lower(), ""))
+  print(item.lower())
   if (item.lower(), "") in dropDictionary:
     threadList: list[str] = dropDictionary[query]
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
@@ -149,7 +150,7 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[
   
   # If the query is not in the drop dictionary, check if the item is in the tracked items
   if item.lower() in trackedItems:
-    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)  
+    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
     print(type + ": " + rsn + " - " + item + " (" + source + ")")
 
   return []

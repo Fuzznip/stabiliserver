@@ -69,8 +69,13 @@ def refresh_cache():
   # Get data from the first column of the sheet except the first row, lower case it, and store it in trackedItems
   trackedItems = [item.lower() for item in readSheet.col_values(1)[1:]]
   print(trackedItems)
-  # Get data from the rest of the columns except the first one
-  inputColumns = readSheet.get_all_values()[1:]
+  # Get data from the rest of the columns (B, C, D, ...) and store it in inputColumns
+  inputColumns = readSheet.get_all_values()
+  # Transpose the inputColumns to convert from a list of rows to a list of columns
+  inputColumns = list(map(list, zip(*inputColumns)))
+  # Remove the first column (the tracked items) from the inputColumns
+  inputColumns = inputColumns[1:]
+  
   print(inputColumns)
   # For each input column, iterate through the rows and insert the data into the drop dictionary
   for column in inputColumns:

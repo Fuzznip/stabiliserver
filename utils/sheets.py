@@ -61,7 +61,7 @@ def refresh_cache():
   # Check if the cache is older than 1 minute
   if (datetime.utcnow() - lastRefresh).total_seconds() < 60:
     return
-
+  
   # Clear the tracked items and drop dictionary
   trackedItems = []
   dropDictionary = {}
@@ -112,7 +112,7 @@ def refresh_cache():
       # Otherwise, append the output id to the list
       else:
         dropDictionary[(item, source)].append(outputId)
-  
+        
   # Update the last refresh time  
   lastRefresh = datetime.utcnow()
 
@@ -123,8 +123,7 @@ def write(player: str, discordId: str, itemSource: str, itemName: str, itemValue
 # Return value in the form of a list of tuples of item names to their lists of output ids
 def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[str]:
   refresh_cache()
-  # print out the drop dictionary
-
+  
   # Create a query for the item and source
   query = (item.lower(), source.lower())
 

@@ -202,6 +202,7 @@ def parse_pet(data) -> dict[str, list[str]]:
   # print data prettyfied
   rsn = data['playerName']
   pet = data['extra']['petName']
+  output = []
   # Check if discordUser exists
   if 'discordUser' not in data:
     discordId = "None"

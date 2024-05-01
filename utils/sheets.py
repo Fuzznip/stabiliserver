@@ -55,11 +55,11 @@ def exponential_backoff(func, max_retries = 5, base_delay = 5):
       time.sleep(delay)
   raise Exception("Exceeded maximum number of retries")
 
-def refresh_cache():
+def refresh_cache(force = False):
   global lastRefresh, trackedItems, dropDictionary
 
   # Check if the cache is older than 1 minute
-  if (datetime.utcnow() - lastRefresh).total_seconds() < 60:
+  if (datetime.utcnow() - lastRefresh).total_seconds() < 60 and not force:
     return
   
   # Clear the tracked items and drop dictionary
@@ -87,7 +87,7 @@ def refresh_cache():
       if row == "":
         continue
 
-      # Parse the row in the format "(-)item:source" 
+      # TODO: Parse the row in the format "(-)item:source" 
       # (-) is optional and indicates whether the item should be blacklisted
       # item is the item name
       # source is the source of the drop
@@ -127,7 +127,6 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[
   query = (item.lower(), source.lower())
   
   # TODO: Check blacklists
-
 
   # Check if the query is in the drop dictionary
   if query in dropDictionary:

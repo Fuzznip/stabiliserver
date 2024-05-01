@@ -280,6 +280,12 @@ def parse_leagues_task(data) -> dict[str, list[str]]:
   # print(json.dumps(data, indent = 2))
   return False
 
+def parse_chat(data) -> dict[str, list[str]]:
+  print("CHAT")
+  # print data prettyfied
+  # print(json.dumps(data, indent = 2))
+  return False
+
 # function to parse login data
 def parse_login(data) -> dict[str, list[str]]:
   print("LOGIN")
@@ -336,6 +342,8 @@ def parse_json_data(json_data) -> dict[str, list[str]]:
       return parse_leagues_relic(data)
     elif type == 'LEAGUES_TASK':
       return parse_leagues_task(data)
+    elif type == 'CHAT':
+      return parse_chat(data)
     elif type == 'LOGIN':
       return parse_login(data)
     else:
@@ -384,13 +392,8 @@ def handle_request():
         }
       ]
 
-      # For each item in itemList, add a line to the embed's description
-      for item in itemList:
-        embeds[0]['description'] += f"{item}\n"
-
-      # Remove the last newline character
-      if len(embeds[0]['description']) > 0:
-        embeds[0]['description'] = embeds[0]['description'][:-1]
+      # Join all items in itemList with a newline character separating them
+      embeds[0]['description'] = "\n".join(itemList)
 
       # Load the image from the file
       with open("lootImage.png", "rb") as imageData:

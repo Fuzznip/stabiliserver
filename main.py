@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 
+import utils.db
+import utils.tile_race
+
 from routes.reload_cache import reload_cache
 from routes.drop_submission_route import drop_submission_route
 from routes.bot_submission_route import bot_submission_route

@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 
+import utils.tile_race as tile_race
+
 # Load credentials from environment variables
 credentials_dict = {
   "type": os.environ.get("type"),
@@ -122,6 +124,8 @@ def write(player: str, discordId: str, itemSource: str, itemName: str, itemValue
 
 # Return value in the form of a list of tuples of item names to their lists of output ids
 def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[str]:
+  tile_race.parse_tile_race_submission(type, rsn, discordId, source, item, itemPrice, itemQuantity)
+
   refresh_cache()
   # Create a query for the item and source
   query = (item.lower(), source.lower())

@@ -282,6 +282,12 @@ def parse_leagues_task(data) -> dict[str, list[str]]:
 
 def parse_chat(data) -> dict[str, list[str]]:
   print("CHAT")
+  # Check if discordUser exists
+  if 'discordUser' not in data:
+    discordId = "None"
+  else:
+    discordId = data['discordUser']['id']
+  submit(data['playerName'], discordId, "CHAT", data['extra']['message'], 0, 1, "CHAT")
   # print data prettyfied
   # print(json.dumps(data, indent = 2))
   return False

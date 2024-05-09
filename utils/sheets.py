@@ -123,8 +123,14 @@ def write(player: str, discordId: str, itemSource: str, itemName: str, itemValue
   writeSheet.append_row(data)
 
 # Return value in the form of a list of tuples of item names to their lists of output ids
-def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[str]:
-  tile_race.parse_tile_race_submission(type, rsn, discordId, source, item, itemPrice, itemQuantity)
+def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type):
+  output = {
+    "threadList": [],
+  }
+  result = tile_race.parse_tile_race_submission(type, rsn, discordId, source, item, itemPrice, itemQuantity)
+  if result is not None:
+    output["threadList"].append(result["thread_id"])
+    output["message"] = result["message"]
 
   refresh_cache()
   # Create a query for the item and source
@@ -134,22 +140,22 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type) -> list[
 
   # Check if the query is in the drop dictionary
   if query in dropDictionary:
-    threadList: list[str] = dropDictionary[query]
+    output["threadList"].append(dropDictionary[query])
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
     print(type + ": " + rsn + " - " + item + " (" + source + ")")
-    return threadList
+    return output
 
   # Check if the query is in the drop dictionary without a specific source
   query = (item.lower(), "")
   if query in dropDictionary:
-    threadList: list[str] = dropDictionary[query]
+    output["threadList"].append(dropDictionary[query])
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
     print(type + ": " + rsn + " - " + item + " (" + source + ")")
-    return threadList
+    return output
   
   # If the query is not in the drop dictionary, check if the item is in the tracked items
   if item.lower() in trackedItems:
     write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
     print(type + ": " + rsn + " - " + item + " (" + source + ")")
 
-  return []
+  return output

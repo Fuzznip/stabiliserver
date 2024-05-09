@@ -161,3 +161,10 @@ def is_team_ready(team):
       value = cur.fetchone()
       return value[0] if value is not None else None
 
+def get_blockers(team):
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Get the team from the table
+      cur.execute("SELECT tile_blockers FROM teams WHERE team = %s", (team, ))
+      value = cur.fetchone()
+      return value[0] if value is not None else None

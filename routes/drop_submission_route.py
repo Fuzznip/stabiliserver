@@ -83,11 +83,16 @@ def parse_loot(data) -> dict[str, list[str]]:
     itemTotal = item['priceEach'] * item['quantity']
     
     # Check if item is in the item list
-    threadIds = submit(rsn, discordId, source, itemName, itemPrice, itemQuantity, "LOOT")
-    for threadId in threadIds:
-      if threadId not in screenshotItems:
-        screenshotItems[threadId] = []
-      screenshotItems[threadId].append(itemName)
+    output = submit(rsn, discordId, source, itemName, itemPrice, itemQuantity, "LOOT")
+    if output is not None:
+      threadIds = output["threadList"]
+      for threadId in threadIds:
+        if threadId not in screenshotItems:
+          screenshotItems[threadId] = []
+        if "message" in output:
+          screenshotItems[threadId].append(output["message"])
+        else:
+          screenshotItems[threadId].append(itemName)
 
   return screenshotItems
 
@@ -132,11 +137,16 @@ def parse_quest(data) -> dict[str, list[str]]:
 
   questName = data['extra']['questName']
 
-  threadIds = submit(rsn, discordId, "QUEST", questName, 0, 1, "QUEST")
-  for threadId in threadIds:
-    if threadId not in screenshotItems:
-      screenshotItems[threadId] = []
-    screenshotItems[threadId].append(questName)
+  output = submit(rsn, discordId, "QUEST", questName, 0, 1, "QUEST")
+  if output is not None:
+    threadIds = output["threadList"]
+    for threadId in threadIds:
+      if threadId not in screenshotItems:
+        screenshotItems[threadId] = []
+      if "message" in output:
+        screenshotItems[threadId].append(output["message"])
+      else:
+        screenshotItems[threadId].append(questName)
 
   # print data prettyfied
   # print(json.dumps(data, indent = 2))
@@ -170,11 +180,16 @@ def parse_clue(data) -> dict[str, list[str]]:
     itemNameLower = itemName.lower()
 
     # Check if item is in the item list
-    threadIds = submit(rsn, discordId, clueType, itemName, itemPrice, itemQuantity, "CLUE")
-    for threadId in threadIds:
-      if threadId not in screenshotItems:
-        screenshotItems[threadId] = []
-      screenshotItems[threadId].append(itemName)
+    output = submit(rsn, discordId, clueType, itemName, itemPrice, itemQuantity, "CLUE")
+    if output is not None:
+      threadIds = output["threadList"]
+      for threadId in threadIds:
+        if threadId not in screenshotItems:
+          screenshotItems[threadId] = []
+        if "message" in output:
+          screenshotItems[threadId].append(output["message"])
+        else:
+          screenshotItems[threadId].append(itemName)
 
   return screenshotItems
 
@@ -209,11 +224,16 @@ def parse_pet(data) -> dict[str, list[str]]:
   else:
     discordId = data['discordUser']['id']
 
-  threadIds = submit(rsn, discordId, "PET", pet, 0, 1, "PET")
-  for threadId in threadIds:
-    if threadId not in screenshotItems:
-      screenshotItems[threadId] = []
-    screenshotItems[threadId].append(pet)
+  output = submit(rsn, discordId, "PET", pet, 0, 1, "PET")
+  if output is not None:
+    threadIds = output["threadList"]
+    for threadId in threadIds:
+      if threadId not in screenshotItems:
+        screenshotItems[threadId] = []
+      if "message" in output:
+        screenshotItems[threadId].append(output["message"])
+      else:
+        screenshotItems[threadId].append(pet)
 
   return screenshotItems
 
@@ -281,16 +301,27 @@ def parse_leagues_task(data) -> dict[str, list[str]]:
   return False
 
 def parse_chat(data) -> dict[str, list[str]]:
+  screenshotItems: dict[str, list[str]] = {}
   print("CHAT")
   # Check if discordUser exists
   if 'discordUser' not in data:
     discordId = "None"
   else:
     discordId = data['discordUser']['id']
-  submit(data['playerName'], discordId, "CHAT", data['extra']['message'], 0, 1, "CHAT")
-  # print data prettyfied
-  # print(json.dumps(data, indent = 2))
-  return False
+  output = submit(data['playerName'], discordId, "CHAT", data['extra']['message'], 0, 1, "CHAT")
+  if output is not None:
+    # print data prettyfied
+    # print(json.dumps(data, indent = 2))
+    threadIds = output["threadList"]
+    for threadId in threadIds:
+      if threadId not in screenshotItems:
+        screenshotItems[threadId] = []
+      if "message" in output:
+        screenshotItems[threadId].append(output["message"])
+      else:
+        screenshotItems[threadId].append(data['extra']['message'])
+
+  return screenshotItems
 
 # function to parse login data
 def parse_login(data) -> dict[str, list[str]]:

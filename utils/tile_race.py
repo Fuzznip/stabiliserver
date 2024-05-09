@@ -2,6 +2,8 @@ import re
 
 import utils.db as db
 
+THREAD_ID = "1232048775405764789"
+
 # tile = {
 #   "name": "name",
 #   "main_triggers": [
@@ -294,7 +296,14 @@ vorkath_tile = {
 
 free_tile = {
   "name": "FREE!",
-  "main_triggers": [],
+  "main_triggers": [
+    {
+      "type": "CHAT",
+      "trigger": [".*"],
+      "count": 1,
+      "points": 1,
+    },
+  ],
   "side_triggers": []
 }
 
@@ -602,7 +611,7 @@ def parse_kc_type(item: str) -> str:
     return "tombs of amascut"
   elif "chambers of xeric" in item:
     if  "chambers of xeric challenge mode" in item:
-      return "challenge of xeric challenge mode"
+      return "chambers of xeric challenge mode"
     return "chambers of xeric"
   elif "theatre of blood" in item:
     if "theatre of blood: entry mode" in item:
@@ -624,13 +633,14 @@ def parse_kc_type(item: str) -> str:
     return "Not Implemented"
 
 def add_side_quest_progress(team, tile, item, trigger, progress = 1):
+  completion = False
   # Check if the count for the trigger is met
   trigger_count = trigger["count"]
   # get the current count for the trigger from the database
   side_progress = db.get_side_progress(team, tile)
 
   if item in side_progress:
-    side_progress[item]["value"] += progress
+    side_progress[item]["value"] = int(side_progress[item]["value"]) + progress
   else:
     side_progress[item] = {}
     side_progress[item]["value"] = progress
@@ -650,27 +660,32 @@ def add_side_quest_progress(team, tile, item, trigger, progress = 1):
     if coins_count + trigger_points >= COIN_TO_STAR_THRESHOLD:
       db.set_coins(team, coins_count + trigger_points - COIN_TO_STAR_THRESHOLD)
       db.add_stars(team, 1)
+      completion = True
     else:
       db.add_coins(team, trigger_points)
     
     side_progress[item]["value"] -= trigger_count
 
   db.save_side_progress(team, tile, side_progress)
+  return completion
 
 def add_main_quest_progress(team, tile, item, trigger, progress = 1):
+  completion = False
   # Check if the count for the trigger is met
   trigger_count = trigger["count"]
   # get the current count for the trigger from the database
   main_progress = db.get_main_progress(team, tile)
 
   if item in main_progress:
-    main_progress[item]["value"] += progress
+    main_progress[item]["value"] = int(main_progress[item]["value"]) + progress
   else:
     main_progress[item] = {}
     main_progress[item]["value"] = progress
 
   current_count = 0
   for t in trigger["trigger"]:
+    # get everything before ":" if there is one
+    t = t.split(":")[0]
     if t.lower() in main_progress:
       current_count += main_progress[t.lower()]["value"]
 
@@ -679,8 +694,11 @@ def add_main_quest_progress(team, tile, item, trigger, progress = 1):
     db.complete_tile(team, tile)
     # add stars
     db.add_stars(team, trigger["points"])
+    completion = True
   else:
     db.save_main_progress(team, tile, main_progress)
+
+  return completion
 
 def parse_tile_race_submission(type, rsn, discordId, source, item, price, quantity):
   if not is_user_in_race(rsn):
@@ -695,6 +713,16 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
   tile = db.get_team_tile(team)
   if tile is None or tile == -1:
     return None
+  
+  # blockers = db.get_blockers(team)
+  # if len(blockers) > 0:
+  #   # grab the last blocker
+  #   last_blocker = blockers[-1]
+  #   # parse the blocker
+  #   blocker_name = last_blocker["name"]
+  #   if "repeat" in last_blocker:
+  #     blocker_tile = last_blocker["repeat"]
+
 
   # Get the tile from index
   tile_data = tiles[tile]
@@ -707,6 +735,9 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
       item = parse_kc_type(item.lower())
       quantity = int(match.group(1))
 
+  submit = False
+  submit_message = ""
+
   # Parse for side quest triggers
   side_triggers = tile_data["side_triggers"]
 
@@ -718,24 +749,32 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         if ":" not in t:
           if item.lower() == t.lower():
             db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
-            add_side_quest_progress(team, tile, item, trigger)
+            submit = add_side_quest_progress(team, tile, item, trigger)
+            if submit:
+              submit_message += f"@{team} has completed a side quest: with {quantity}x {item} from {source}\n"
         else:
           i, s = t.split(":")
           if item.lower() == i.lower() and source.lower() == s.lower():
             db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
-            add_side_quest_progress(team, tile, item, trigger)
+            submit = add_side_quest_progress(team, tile, item, trigger)
+            if submit:
+              submit_message += f"@{team} has completed a side quest: with {quantity}x {item} from {source}\n"
     elif trigger["type"] == "KC":
       # loop through all the triggers
       for t in trigger["trigger"]:
         if ":" not in t:
           if item.lower() == t.lower():
             db.record_kc(team, tile, rsn, discordId, item)
-            add_side_quest_progress(team, tile, item, trigger)
+            submit = add_side_quest_progress(team, tile, item, trigger)
+            if submit:
+              submit_message += f"@{team} has completed a side quest: {item} has been slain!\n"
         else:
           i, progress = t.split(":")
           if item.lower() == i.lower():
             db.record_kc(team, tile, rsn, discordId, item)
-            add_side_quest_progress(team, tile, item, trigger, progress)
+            submit = add_side_quest_progress(team, tile, item, trigger, int(progress))
+            if submit:
+              submit_message += f"@{team} has completed a side quest: {item} has been slain!\n"
     elif trigger["type"] == "CHAT":
         for t in trigger["trigger"]:
           db.record_chat(team, tile, rsn, discordId, t)
@@ -754,24 +793,32 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         if ":" not in t:
           if item.lower() == t.lower():
             db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
-            add_main_quest_progress(team, tile, item, trigger)
+            submit = add_main_quest_progress(team, tile, item, trigger)
+            if submit:
+              submit_message += f"@{team} has completed a main quest: with {quantity}x {item} from {source}\n"
         else:
           i, s = t.split(":")
           if item.lower() == i.lower() and source.lower() == s.lower():
             db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
-            add_main_quest_progress(team, tile, item, trigger)
+            submit = add_main_quest_progress(team, tile, item, trigger)
+            if submit:
+              submit_message += f"@{team} has completed a main quest: with {quantity}x {item} from {source}\n"
     elif trigger["type"] == "KC":
       # loop through all the triggers
       for t in trigger["trigger"]:
         if ":" not in t:
           if item.lower() == t.lower():
             db.record_kc(team, tile, rsn, discordId, item)
-            add_main_quest_progress(team, tile, item, trigger)
+            submit = add_main_quest_progress(team, tile, item, trigger)
+            if submit:
+              submit_message += f"@{team} has completed a main quest: {item} has been slain!\n"
         else:
           i, progress = t.split(":")
           if item.lower() == i.lower():
             db.record_kc(team, tile, rsn, discordId, item)
-            add_main_quest_progress(team, tile, item, trigger, progress)
+            submit = add_main_quest_progress(team, tile, item, trigger, int(progress))
+            if submit:
+              submit_message += f"@{team} has completed a main quest: {item} has been slain!\n"
     elif trigger["type"] == "CHAT":
         for t in trigger["trigger"]:
           db.record_chat(team, tile, rsn, discordId, t)
@@ -780,5 +827,18 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
       pass
 
   # Need to check if the drop is a pet or a tome of fire for auto completion of tile
+  if type == "PET" or item == "tome of fire (uncharged)":
+    # Check if the team is ready
+    if not db.is_team_ready(team):
+      db.complete_tile(team, tile)
+    db.add_stars(team, 1)
 
+    submit = True
+    submit_message += f"@{team} has completed the tile: {tile_data['name']} with a PET: {item} from {source}!!!!\n"
+
+  if submit == True:
+    return {
+      "message": submit_message,
+      "thread_id": THREAD_ID,
+    }
   return None

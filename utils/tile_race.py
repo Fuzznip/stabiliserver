@@ -27,13 +27,13 @@ raid_tile = {
   "main_triggers": [
     {
       "type": "DROP",
-      "trigger": ["Avernic defender hilt", "Ghrazi rapier", "Sanguinesti staff (uncharged)", "Justiciar faceguard", "Justiciar legguards", "Scythe of vitur (uncharged)"],
+      "trigger": ["Avernic defender hilt", "Ghrazi rapier", "Sanguinesti staff (uncharged)", "Justiciar faceguard", "Justiciar legguards", "Scythe of vitur (uncharged)", "Sanguine ornament kit", "Holy ornament kit", "Sanguine dust"],
       "count": 1,
       "points": 1,
     },
     {
       "type": "DROP",
-      "trigger": ["Dexterous prayer scroll", "Arcane prayer scroll", "Twisted buckler", "Dragon hunter crossbow", "Ancestral hat", "Ancestral robe top", "Ancestral robe bottom", "Dinh's bulwark", "Dragon claws", "Elder maul", "Kodai insignia", "Twisted bow"],
+      "trigger": ["Twisted ancestral colour kit", "Metamorphic dust", "Dexterous prayer scroll", "Arcane prayer scroll", "Twisted buckler", "Dragon hunter crossbow", "Ancestral hat", "Ancestral robe top", "Ancestral robe bottom", "Dinh's bulwark", "Dragon claws", "Elder maul", "Kodai insignia", "Twisted bow"],
       "count": 1,
       "points": 1,
     },
@@ -45,8 +45,8 @@ raid_tile = {
     },
     {
       "type": "KC",
-      "trigger": ["Tombs of Amascut", "Chambers of Xeric", "Theatre of Blood"],
-      "count": 25,
+      "trigger": ["Tombs of Amascut Expert mode:2", "Tombs of Amascut:1", "Chambers of Xeric:2", "Chambers of Xeric Challenge Mode:3", "Theatre of Blood:2", "Theatre of Blood Hard mode:3"],
+      "count": 50,
       "points": 1,
     }
   ],
@@ -390,8 +390,8 @@ toa_tile = {
     },
     {
       "type": "KC",
-      "trigger": ["Tombs of Amascut"],
-      "count": 25,
+      "trigger": ["Tombs of Amascut:1", "Tombs of Amascut Expert mode:2"],
+      "count": 50,
       "points": 1,
     }
   ],
@@ -410,14 +410,14 @@ tob_tile = {
   "main_triggers": [
     {
       "type": "DROP",
-      "trigger": ["Avernic defender hilt", "Ghrazi rapier", "Sanguinesti staff (uncharged)", "Justiciar faceguard", "Justiciar legguards", "Scythe of vitur (uncharged)", "Lil'zik"],
+      "trigger": ["Avernic defender hilt", "Ghrazi rapier", "Sanguinesti staff (uncharged)", "Justiciar faceguard", "Justiciar legguards", "Scythe of vitur (uncharged)", "Lil'zik", "Sanguine ornament kit", "Holy ornament kit", "Sanguine dust"],
       "count": 1,
       "points": 1,
     },
     {
       "type": "KC",
-      "trigger": ["Theatre of Blood"],
-      "count": 20,
+      "trigger": ["Theatre of Blood Entry mode:2", "Theatre of Blood:6", "Theatre of Blood Hard mode:9"],
+      "count": 120,
       "points": 1,
     }
   ],
@@ -489,14 +489,14 @@ cox_tile = {
   "main_triggers":[
     {
       "type": "DROP",
-      "trigger": ["Twisted bow", "Dinh's bulwark", "Ancestral hat", "Ancestral robe top", "Ancestral robe bottom", "Dragon claws", "Elder maul", "Kodai insignia", "Twisted buckler", "Dragon hunter crossbow", "Dexterous prayer scroll", "Arcane prayer scroll"],
+      "trigger": ["Twisted bow", "Dinh's bulwark", "Ancestral hat", "Ancestral robe top", "Ancestral robe bottom", "Dragon claws", "Elder maul", "Kodai insignia", "Twisted buckler", "Dragon hunter crossbow", "Dexterous prayer scroll", "Arcane prayer scroll", "Twisted ancestral colour kit", "Metamorphic dust"],
       "count": 1,
       "points": 1,
     },
     {
       "type": "KC",
-      "trigger": ["Chambers of Xeric"],
-      "count": 20,
+      "trigger": ["Chambers of Xeric:2", "Chambers of Xeric Challenge Mode:3"],
+      "count": 40,
       "points": 1,
     }
   ],
@@ -595,13 +595,21 @@ def is_user_in_race(rsn):
 
 def parse_kc_type(item: str) -> str:
   if "tombs of amascut" in item:
-    if not "tombs of amascut: entry mode" in item:
-      return "tombs of amascut"
+    if "tombs of amascut: entry mode" in item:
+      return "tombs of amascut entry mode"
+    elif "tombs of amascut: expert mode" in item:
+      return "tombs of amascut expert mode"
+    return "tombs of amascut"
   elif "chambers of xeric" in item:
+    if  "chambers of xeric challenge mode" in item:
+      return "challenge of xeric challenge mode"
     return "chambers of xeric"
   elif "theatre of blood" in item:
-    if not "theatre of blood: entry mode" in item:
-      return "theatre of blood"
+    if "theatre of blood: entry mode" in item:
+      return "theatre of blood entry mode"
+    elif "theatre of blood: hard mode" in item:
+      return "theatre of blood hard mode"
+    return "theatre of blood"
   elif "giant mole" in item:
     return "giant mole"
   elif "scurrius" in item:
@@ -615,23 +623,22 @@ def parse_kc_type(item: str) -> str:
   else:
     return "Not Implemented"
 
-def add_side_quest_progress(team, tile, item, count, points):
+def add_side_quest_progress(team, tile, item, trigger, progress = 1):
   # Check if the count for the trigger is met
-  trigger_count = count
+  trigger_count = trigger["count"]
   # get the current count for the trigger from the database
   side_progress = db.get_side_progress(team, tile)
 
   if item in side_progress:
-    side_progress[item]["value"] += 1
+    side_progress[item]["value"] += progress
   else:
     side_progress[item] = {}
-    side_progress[item]["value"] = 1
+    side_progress[item]["value"] = progress
   current_count = side_progress[item]["value"]
 
-  trigger_count = count
   if current_count >= trigger_count:
     coins_count = db.get_coin_count(team)
-    trigger_points = points
+    trigger_points = trigger["points"]
     if "gained" in side_progress:
       if side_progress[item]["gained"] == MAX_SIDE_QUEST_COINS:
         current_count = 0
@@ -650,17 +657,17 @@ def add_side_quest_progress(team, tile, item, count, points):
 
   db.save_side_progress(team, tile, side_progress)
 
-def add_main_quest_progress(team, tile, item, trigger):
+def add_main_quest_progress(team, tile, item, trigger, progress = 1):
   # Check if the count for the trigger is met
   trigger_count = trigger["count"]
   # get the current count for the trigger from the database
   main_progress = db.get_main_progress(team, tile)
 
   if item in main_progress:
-    main_progress[item]["value"] += 1
+    main_progress[item]["value"] += progress
   else:
     main_progress[item] = {}
-    main_progress[item]["value"] = 1
+    main_progress[item]["value"] = progress
 
   current_count = 0
   for t in trigger["trigger"]:
@@ -711,23 +718,26 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         if ":" not in t:
           if item.lower() == t.lower():
             db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
-
-            add_side_quest_progress(team, tile, item, trigger["count"], trigger["points"])
+            add_side_quest_progress(team, tile, item, trigger)
         else:
           i, s = t.split(":")
           if item.lower() == i.lower() and source.lower() == s.lower():
             db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
-
-            add_side_quest_progress(team, tile, item, trigger["count"], trigger["points"])
+            add_side_quest_progress(team, tile, item, trigger)
     elif trigger["type"] == "KC":
       # loop through all the triggers
       for t in trigger["trigger"]:
-        if item.lower() == t.lower():
-          db.record_kc(team, tile, rsn, discordId, item)
-          add_side_quest_progress(team, tile, item, trigger["count"], trigger["points"])
+        if ":" not in t:
+          if item.lower() == t.lower():
+            db.record_kc(team, tile, rsn, discordId, item)
+            add_side_quest_progress(team, tile, item, trigger)
+        else:
+          i, progress = t.split(":")
+          if item.lower() == i.lower():
+            db.record_kc(team, tile, rsn, discordId, item)
+            add_side_quest_progress(team, tile, item, trigger, progress)
     elif trigger["type"] == "CHAT":
         for t in trigger["trigger"]:
-          
           db.record_chat(team, tile, rsn, discordId, t)
     elif trigger["type"] == "XP":
       # Yeah idk lmao
@@ -753,9 +763,15 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     elif trigger["type"] == "KC":
       # loop through all the triggers
       for t in trigger["trigger"]:
-        if item.lower() == t.lower():
-          db.record_kc(team, tile, rsn, discordId, item)
-          add_main_quest_progress(team, tile, item, trigger)
+        if ":" not in t:
+          if item.lower() == t.lower():
+            db.record_kc(team, tile, rsn, discordId, item)
+            add_main_quest_progress(team, tile, item, trigger)
+        else:
+          i, progress = t.split(":")
+          if item.lower() == i.lower():
+            db.record_kc(team, tile, rsn, discordId, item)
+            add_main_quest_progress(team, tile, item, trigger, progress)
     elif trigger["type"] == "CHAT":
         for t in trigger["trigger"]:
           db.record_chat(team, tile, rsn, discordId, t)
@@ -764,6 +780,5 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
       pass
 
   # Need to check if the drop is a pet or a tome of fire for auto completion of tile
-  
 
   return None

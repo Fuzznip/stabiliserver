@@ -24,6 +24,21 @@ def create_tile(tile_id, tile_name, main_triggers, side_triggers, extra):
       cur.execute("INSERT INTO tiles (tile_id, tile_name, main_triggers, side_triggers, extra) VALUES (%s, %s, %s, %s, %s)", (tile_id, tile_name, Jsonb(main_triggers), Jsonb(side_triggers), Jsonb(extra)))
       conn.commit()
 
+def update_tile(tile_id, tile_name, main_triggers, side_triggers, extra):
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Update a tile
+      cur.execute("UPDATE tiles SET tile_name = %s, main_triggers = %s, side_triggers = %s, extra = %s WHERE tile_id = %s", (tile_name, main_triggers, side_triggers, Jsonb(extra), tile_id))
+      conn.commit()
+
+def get_tile_data(tile_id):
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Get the tile from the table
+      cur.execute("SELECT tile_name, main_triggers, side_triggers, extra FROM tiles WHERE tile_id = %s", (tile_id, ))
+      value = cur.fetchone()
+      return {"tile_name": value[0], "main_triggers": value[1], "side_triggers": value[2], "extra": value[3]} if value is not None else None
+
 def ensure_drops_db():
   with dbpool.connection() as conn:
     with conn.cursor() as cur:

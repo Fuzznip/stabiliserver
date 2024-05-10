@@ -765,20 +765,20 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
       for t in trigger["trigger"]:
         if ":" not in t:
           if item.lower() == t.lower():
-            db.record_kc(team, tile, rsn, discordId, item)
+            db.record_kc(rsn, team, discordId, item)
             submit = add_side_quest_progress(team, tile, item, trigger)
             if submit:
               submit_message += f"@{team} has completed a side quest: {item} has been slain!\n"
         else:
           i, progress = t.split(":")
           if item.lower() == i.lower():
-            db.record_kc(team, tile, rsn, discordId, item)
+            db.record_kc(rsn, team, discordId, item)
             submit = add_side_quest_progress(team, tile, item, trigger, int(progress))
             if submit:
               submit_message += f"@{team} has completed a side quest: {item} has been slain!\n"
     elif trigger["type"] == "CHAT":
         for t in trigger["trigger"]:
-          db.record_chat(team, tile, rsn, discordId, t)
+          db.record_chat(rsn, team, discordId, t)
     elif trigger["type"] == "XP":
       # Yeah idk lmao
       pass
@@ -809,20 +809,20 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
       for t in trigger["trigger"]:
         if ":" not in t:
           if item.lower() == t.lower():
-            db.record_kc(team, tile, rsn, discordId, item)
+            db.record_kc(rsn, team, discordId, item)
             submit = add_main_quest_progress(team, tile, item, trigger)
             if submit:
               submit_message += f"@{team} has completed a main quest: {item} has been slain!\n"
         else:
           i, progress = t.split(":")
           if item.lower() == i.lower():
-            db.record_kc(team, tile, rsn, discordId, item)
+            db.record_kc(rsn, team, discordId, item)
             submit = add_main_quest_progress(team, tile, item, trigger, int(progress))
             if submit:
               submit_message += f"@{team} has completed a main quest: {item} has been slain!\n"
     elif trigger["type"] == "CHAT":
         for t in trigger["trigger"]:
-          db.record_chat(team, tile, rsn, discordId, t)
+          db.record_chat(rsn, team, discordId, t)
     elif trigger["type"] == "XP":
       # Yeah idk lmao
       pass

@@ -65,7 +65,7 @@ def add_side_quest_progress(team, tile, item, trigger, progress = 1):
   if current_count >= trigger_count:
     coins_count = db.get_coin_count(team)
     trigger_points = trigger["points"]
-    if "gained" in side_progress:
+    if "gained" in side_progress[item]:
       if side_progress[item]["gained"] == MAX_SIDE_QUEST_COINS:
         current_count = 0
       trigger_points = min(MAX_SIDE_QUEST_COINS - side_progress[item]["gained"], trigger_points)

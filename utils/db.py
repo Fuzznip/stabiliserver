@@ -14,7 +14,7 @@ def ensure_tile_db():
   with dbpool.connection() as conn:
     with conn.cursor() as cur:
       # Create tiles table
-      cur.execute("CREATE TABLE IF NOT EXISTS tiles (tile_id int PRIMARY KEY, tile_name TEXT, main_triggers []::jsonb, side_triggers []::jsonb, extra jsonb)")
+      cur.execute("CREATE TABLE IF NOT EXISTS tiles (tile_id int PRIMARY KEY, tile_name TEXT, main_triggers jsonb[], side_triggers jsonb[], extra jsonb)")
       conn.commit()
 
 def create_tile(tile_id, tile_name, main_triggers, side_triggers, extra):

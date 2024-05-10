@@ -2,7 +2,7 @@ import re
 
 import utils.db as db
 
-THREAD_ID = "1232048775405764789"
+THREAD_ID = "1232048319996625029"#"1232048775405764789"
 
 KC_REGEX = "your [\w\W]+ count is: ([0-9]+)\."
 COIN_TO_STAR_THRESHOLD = 10
@@ -68,6 +68,7 @@ def add_side_quest_progress(team, tile, item, trigger, progress = 1):
     if "gained" in side_progress[item]:
       if side_progress[item]["gained"] == MAX_SIDE_QUEST_COINS:
         current_count = 0
+        return False
       trigger_points = min(MAX_SIDE_QUEST_COINS - side_progress[item]["gained"], trigger_points)
       side_progress[item]["gained"] += trigger_points
     else:

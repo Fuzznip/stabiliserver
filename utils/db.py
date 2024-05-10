@@ -56,8 +56,8 @@ def add_drop(rsn, team, discord_id, item, source, value, quantity, total, type):
 def record_kc(rsn, team, discord_id, source):
   add_drop(rsn, team, discord_id, "killcount", source, 0, 1, 0, "KC")
 
-def record_chat(rsn, team, discord_id, t):
-  add_drop(rsn, team, discord_id, "chat", t, 0, 1, 0, "CHAT")
+def record_chat(rsn, team, discord_id, item, quantity):
+  add_drop(rsn, team, discord_id, item, "chat", 0, quantity, 0, "CHAT")
 
 def record_drop(rsn, team, discord_id, item, source, value, quantity):
   add_drop(rsn, team, discord_id, item, source, value, quantity, value * quantity, "DROP")

@@ -240,8 +240,8 @@ gauntlet_tile = {
   ],
   "side_triggers": [
     {
-      "type": "CHAT",
-      "trigger": ["Agility Arena Ticket"],
+      "type": "KC",
+      "trigger": [ "Agility Arena" ],
       "count": 50,
       "points": 1,
     }
@@ -296,15 +296,11 @@ vorkath_tile = {
 
 free_tile = {
   "name": "FREE!",
-  "main_triggers": [
-    {
-      "type": "CHAT",
-      "trigger": [".*"],
-      "count": 1,
-      "points": 1,
-    },
-  ],
-  "side_triggers": []
+  "main_triggers": [],
+  "side_triggers": [],
+  "extra": {
+    "free": True
+  }
 }
 
 clue_tile = {
@@ -629,6 +625,8 @@ def parse_kc_type(item: str) -> str:
     return "tztok-jad"
   elif "agility pyramid" in item:
     return "agility pyramid"
+  elif "agility arena" in item:
+    return "agility arena"
   else:
     return "Not Implemented"
 
@@ -660,11 +658,11 @@ def add_side_quest_progress(team, tile, item, trigger, progress = 1):
     if coins_count + trigger_points >= COIN_TO_STAR_THRESHOLD:
       db.set_coins(team, coins_count + trigger_points - COIN_TO_STAR_THRESHOLD)
       db.add_stars(team, 1)
-      completion = True
     else:
       db.add_coins(team, trigger_points)
     
     side_progress[item]["value"] -= trigger_count
+    completion = True
 
   db.save_side_progress(team, tile, side_progress)
   return completion
@@ -714,6 +712,9 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
   if tile is None or tile == -1:
     return None
   
+  if type == "MANUAL":
+    type = "LOOT"
+
   # blockers = db.get_blockers(team)
   # if len(blockers) > 0:
   #   # grab the last blocker
@@ -748,14 +749,14 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         # Grab the item and the source if there is one
         if ":" not in t:
           if item.lower() == t.lower():
-            db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
+            db.record_drop(rsn, team, discordId, item, source, price, quantity)
             submit = add_side_quest_progress(team, tile, item, trigger)
             if submit:
               submit_message += f"@{team} has completed a side quest: with {quantity}x {item} from {source}\n"
         else:
           i, s = t.split(":")
           if item.lower() == i.lower() and source.lower() == s.lower():
-            db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
+            db.record_drop(rsn, team, discordId, item, source, price, quantity)
             submit = add_side_quest_progress(team, tile, item, trigger)
             if submit:
               submit_message += f"@{team} has completed a side quest: with {quantity}x {item} from {source}\n"
@@ -792,14 +793,14 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         # Grab the item and the source if there is one
         if ":" not in t:
           if item.lower() == t.lower():
-            db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
+            db.record_drop(rsn, team, discordId, item, source, price, quantity)
             submit = add_main_quest_progress(team, tile, item, trigger)
             if submit:
               submit_message += f"@{team} has completed a main quest: with {quantity}x {item} from {source}\n"
         else:
           i, s = t.split(":")
           if item.lower() == i.lower() and source.lower() == s.lower():
-            db.record_drop(team, tile, rsn, discordId, item, source, price, quantity)
+            db.record_drop(rsn, team, discordId, item, source, price, quantity)
             submit = add_main_quest_progress(team, tile, item, trigger)
             if submit:
               submit_message += f"@{team} has completed a main quest: with {quantity}x {item} from {source}\n"

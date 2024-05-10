@@ -1,5 +1,6 @@
 import psycopg
 from psycopg_pool import ConnectionPool
+from psycopg.types.json import Jsonb
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -8,6 +9,43 @@ import os
 import json
 
 dbpool = ConnectionPool(conninfo = os.getenv("DATABASE_URL"))
+
+def ensure_tile_db():
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Create tiles table
+      cur.execute("CREATE TABLE IF NOT EXISTS tiles (tile_id int PRIMARY KEY, tile_name TEXT, main_triggers []::jsonb, side_triggers []::jsonb, extra jsonb)")
+      conn.commit()
+
+def create_tile(tile_id, tile_name, main_triggers, side_triggers, extra):
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Create a new tile
+      cur.execute("INSERT INTO tiles (tile_id, tile_name, main_triggers, side_triggers, extra) VALUES (%s, %s, %s, %s, %s)", (tile_id, tile_name, Jsonb(main_triggers), Jsonb(side_triggers), Jsonb(extra)))
+      conn.commit()
+
+def ensure_drops_db():
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Create drops table
+      cur.execute("CREATE TABLE IF NOT EXISTS drops (drop_id SERIAL PRIMARY KEY, rsn TEXT, team TEXT, discord_id TEXT, item TEXT, source TEXT, value INT, quantity INT, total INT, type TEXT, timestamp TIMESTAMP)")
+      conn.commit()
+
+def add_drop(rsn, team, discord_id, item, source, value, quantity, total, type):
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Add a drop to the table
+      cur.execute("INSERT INTO drops (rsn, team, discord_id, item, source, value, quantity, total, type, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())", (rsn, team, discord_id, item, source, value, quantity, total, type))
+      conn.commit()
+
+def record_kc(rsn, team, discord_id, source):
+  add_drop(rsn, team, discord_id, "killcount", source, 0, 1, 0, "KC")
+
+def record_chat(rsn, team, discord_id, t):
+  add_drop(rsn, team, discord_id, "chat", t, 0, 1, 0, "CHAT")
+
+def record_drop(rsn, team, discord_id, item, source, value, quantity):
+  add_drop(rsn, team, discord_id, item, source, value, quantity, value * quantity, "DROP")
 
 def get_user(discordId):
   with dbpool.connection() as conn:
@@ -69,15 +107,6 @@ def get_coin_count(team):
       cur.execute("SELECT coins FROM teams WHERE team = %s", (team, ))
       value = cur.fetchone()
       return value[0] if value is not None else None
-    
-def record_drop(team, tile, rsn, discordId, item, source, price, quantity):
-  pass
-
-def record_kc(team, tile, rsn, discordId, source):
-  pass
-
-def record_chat(team, tile, rsn, discordId, t):
-  pass
 
 def get_main_progress(team, tile):
   with dbpool.connection() as conn:

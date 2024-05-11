@@ -286,7 +286,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     db.add_stars(team, 1)
 
     submit = True
-    submit_message += f"@{team} has completed the tile: {tile_data['name']} with a: {item} from {source}!!!!\n"
+    submit_message += f"@{team} has completed the tile: {tile_data['tile_name']} with a: {item} from {source}!!!!\n"
 
   if submit == True:
     return {

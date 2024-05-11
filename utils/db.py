@@ -174,6 +174,8 @@ def complete_tile(team, tile):
     with conn.cursor() as cur:
       # Complete the tile
       cur.execute("UPDATE teams SET ready = true WHERE team = %s", (team, ))
+      # Reset the "Roll Modifier" and "Roll Size" fields in the team
+      cur.execute("UPDATE teams SET roll_size = 4, roll_modifier = 0, WHERE team = %s", (team, ))
 
       # Reset the "gained" field in the side progress
       # Get the side progress from the table as a json

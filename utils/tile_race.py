@@ -127,6 +127,7 @@ def add_main_quest_progress(team, tile, item, trigger, progress = 1):
   return completion
 
 def parse_tile_race_submission(type, rsn, discordId, source, item, price, quantity):
+  return None
   if not is_user_in_race(rsn):
     return None
 

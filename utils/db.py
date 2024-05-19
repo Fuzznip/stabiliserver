@@ -39,6 +39,14 @@ def get_tile_data(tile_id):
       value = cur.fetchone()
       return {"tile_name": value[0], "main_triggers": value[1], "side_triggers": value[2], "extra": value[3]} if value is not None else None
 
+def get_tiles():
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Get all tiles from the table
+      cur.execute("SELECT tile_id, tile_name, main_triggers, side_triggers, extra FROM tiles")
+      value = cur.fetchall()
+      return [{"tile_id": tile[0], "tile_name": tile[1], "main_triggers": tile[2], "side_triggers": tile[3], "extra": tile[4]} for tile in value] if value is not None else None
+
 def ensure_drops_db():
   with dbpool.connection() as conn:
     with conn.cursor() as cur:
@@ -214,3 +222,19 @@ def get_blockers(team):
       cur.execute("SELECT tile_blockers FROM teams WHERE team = %s", (team, ))
       value = cur.fetchone()
       return value[0] if value is not None else None
+    
+def get_events():
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Get the team from the table
+      cur.execute("SELECT id, name, start_time, end_time, event_type, description FROM events")
+      value = cur.fetchall()
+      return [{"id": event[0], "name": event[1], "start_time": event[2].isoformat(), "end_time": event[3].isoformat(), "event_type": event[4], "description": event[5]} for event in value] if value is not None else None
+    
+def get_event(event_id):
+  with dbpool.connection() as conn:
+    with conn.cursor() as cur:
+      # Get the team from the table
+      cur.execute("SELECT id, name, start_time, end_time, event_type, description FROM events WHERE id = %s", (event_id, ))
+      value = cur.fetchone()
+      return {"id": value[0], "name": value[1], "start_time": value[2].isoformat(), "end_time": value[3].isoformat(), "event_type": value[4], "description": value[5]} if value is not None else None

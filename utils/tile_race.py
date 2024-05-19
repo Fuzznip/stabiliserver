@@ -8,7 +8,7 @@ import os
 
 THREAD_ID = os.environ.get("THREAD_ID", 1232048775405764789)
 
-KC_REGEX = "your [\w\W]+ count is: ([0-9]+)\."
+KC_REGEX = "your [\\w\\W]+ count is: ([0-9]+)\\."
 COIN_TO_STAR_THRESHOLD = 10
 MAX_SIDE_QUEST_COINS = 8
 

@@ -89,6 +89,7 @@ def parse_loot(data) -> dict[str, list[str]]:
       for threadId in threadIds:
         if threadId not in screenshotItems:
           screenshotItems[threadId] = []
+
         if "message" in output:
           screenshotItems[threadId].append(output["message"])
         else:
@@ -405,7 +406,7 @@ def handle_request():
     if result:
       image_required = True
 
-  if 'file' in request.files and image_required:
+  if image_required and 'file' in request.files:
     file = request.files['file']
     # Take payload data and image data and send it to WEBHOOK env variable
     webhook = os.environ.get("WEBHOOK")
@@ -413,7 +414,7 @@ def handle_request():
     # Send the file to webhook
     data = json.loads(json_data)
 
-    # Save the image to memory
+    # Save the image to memory (there's gotta be a better way to do this, right?)
     file.save("lootImage.png")
 
     for threadId, itemList in result.items():

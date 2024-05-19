@@ -18,7 +18,8 @@ def handle_request():
 
   outputs = submit(data["user"], format(data["discordId"], '.0f'), data["source"], data["item"], 0, 0, "MANUAL")
 
-  for output in outputs:
+  result = None
+  for output in outputs['threadList']:
     url = os.environ.get("WEBHOOK") + "?thread_id=" + output
   
     embeds = [
@@ -45,5 +46,5 @@ def handle_request():
       print(err)
   
   if result:
-    return jsonify({ "message": "Submission received" })
-  return jsonify({ "message": "No action recorded" })
+    return jsonify({ "message": "Submission received - Drop successfully tracked!" })
+  return jsonify({ "message": "Submission received - Drop was not part of any event so it was not recorded" })

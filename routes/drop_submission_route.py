@@ -430,6 +430,7 @@ def handle_request():
 
       # Join all items in itemList with a newline character separating them
       embeds[0]['description'] = "\n".join(itemList)
+      print(embeds + ": " + json_data)
 
       # Load the image from the file
       with open("lootImage.png", "rb") as imageData:

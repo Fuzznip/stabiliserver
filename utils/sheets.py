@@ -118,16 +118,16 @@ def refresh_cache(force = False):
   # Update the last refresh time  
   lastRefresh = datetime.utcnow()
 
-def write(player: str, discordId: str, itemSource: str, itemName: str, itemValue: int, itemQuantity: int, type: str) -> None:
-  data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemSource, itemName, itemValue, itemQuantity, itemValue * itemQuantity, type ]
+def write(player: str, discordId: str, itemSource: str, itemName: str, itemValue: int, itemQuantity: int, submitType: str) -> None:
+  data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemSource, itemName, itemValue, itemQuantity, itemValue * itemQuantity, submitType ]
   writeSheet.append_row(data)
 
 # Return value in the form of a list of tuples of item names to their lists of output ids
-def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type):
+def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType):
   output = {
     "threadList": [],
   }
-  result = tile_race.parse_tile_race_submission(type, rsn, discordId, source, item, itemPrice, itemQuantity)
+  result = tile_race.parse_tile_race_submission(submitType, rsn, discordId, source, item, itemPrice, itemQuantity)
   if result is not None:
     output["threadList"].append(result["thread_id"])
     output["message"] = result["message"]
@@ -142,8 +142,8 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type):
   if query in dropDictionary:
     for threadId in dropDictionary[query]:
       output["threadList"].append(threadId)
-    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
-    print(type + ": " + rsn + " - " + item + " (" + source + ")")
+    write(rsn, discordId, source, item, itemPrice, itemQuantity, submitType)
+    print(submitType + ": " + rsn + " - " + item + " (" + source + ")")
     return output
 
   # Check if the query is in the drop dictionary without a specific source
@@ -151,13 +151,13 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, type):
   if query in dropDictionary:
     for threadId in dropDictionary[query]:
       output["threadList"].append(threadId)
-    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
-    print(type + ": " + rsn + " - " + item + " (" + source + ")")
+    write(rsn, discordId, source, item, itemPrice, itemQuantity, submitType)
+    print(submitType + ": " + rsn + " - " + item + " (" + source + ")")
     return output
   
   # If the query is not in the drop dictionary, check if the item is in the tracked items
   if item.lower() in trackedItems:
-    write(rsn, discordId, source, item, itemPrice, itemQuantity, type)
-    print(type + ": " + rsn + " - " + item + " (" + source + ")")
+    write(rsn, discordId, source, item, itemPrice, itemQuantity, submitType)
+    print(submitType + ": " + rsn + " - " + item + " (" + source + ")")
 
   return output

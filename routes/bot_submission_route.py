@@ -34,7 +34,9 @@ def handle_request():
       # for each item in result, send a webhook
       embeds = [
         {
-          'author': data['user'],
+          'author': {
+            'name': data['user'],
+          },
           'description': '',
           'image': {
             'url': data['attachment']

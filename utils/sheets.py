@@ -137,9 +137,11 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType):
     query = (item.lower(), source.lower())
     
     # TODO: Check blacklists
+    print(query)
+    print(dropDictionary)
+    print(trackedItems)
 
     # Check if the query is in the drop dictionary
-    print(dropDictionary)
     if query in dropDictionary:
         for threadId in dropDictionary[query]:
             output["threadList"].append(threadId)

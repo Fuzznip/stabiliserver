@@ -138,7 +138,6 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType):
     
     # TODO: Check blacklists
     print(query)
-    print(dropDictionary)
     print(trackedItems)
 
     # Check if the query is in the drop dictionary

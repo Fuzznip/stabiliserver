@@ -336,6 +336,18 @@ def parse_chat(data) -> dict[str, list[str]]:
             return "agility pyramid"
         elif "agility arena" in item:
             return "agility arena"
+        elif "scurrius" in item:
+            return "scurrius"
+        elif "giant mole" in item:
+            return "giant mole"
+        elif "sarachnis" in item:
+            return "sarachnis"
+        elif "king black dragon" in item:
+            return "king black dragon"
+        elif "phantom muspah" in item:
+            return "phantom muspah"
+        elif "kalphite queen" in item:
+            return "kalphite queen"
         else:
             return "Not Implemented"
 

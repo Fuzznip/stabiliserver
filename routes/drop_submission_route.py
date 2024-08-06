@@ -5,6 +5,7 @@ load_dotenv()
 import os
 import requests
 import json
+import re
 
 drop_submission_route = Blueprint("stability", __name__)
 
@@ -308,6 +309,11 @@ def parse_chat(data) -> dict[str, list[str]]:
         discordId = data['discordUser']['id']
 
     def check_string_for_kc(item):
+        KC_REGEX = "your [\w\W]+ count is: ([0-9]+)\."
+        match = re.match(KC_REGEX, item)
+        if not match:
+            return "Not Implemented"
+
         if "tombs of amascut" in item:
             if "tombs of amascut: entry mode" in item:
                 return "tombs of amascut entry mode"
@@ -351,10 +357,9 @@ def parse_chat(data) -> dict[str, list[str]]:
         else:
             return "Not Implemented"
 
-    print(data['extra']['message'])
     kcString = check_string_for_kc(data['extra']['message'].lower())
-    print(kcString)
     if kcString != "Not Implemented":
+        print(kcString)
         output = submit(data['playerName'], discordId, kcString, kcString, 0, 1, "KC")
     else:
         output = submit(data['playerName'], discordId, "CHAT", data['extra']['message'], 0, 1, "CHAT")

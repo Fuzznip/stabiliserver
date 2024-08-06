@@ -351,7 +351,7 @@ def parse_chat(data) -> dict[str, list[str]]:
         else:
             return "Not Implemented"
 
-    kcString = check_string_for_kc(data['extra']['message'])
+    kcString = check_string_for_kc(data['extra']['message'].lower())
     if kcString != "Not Implemented":
         output = submit(data['playerName'], discordId, kcString, kcString, 0, 1, "KC")
     else:

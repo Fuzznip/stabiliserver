@@ -307,7 +307,9 @@ def parse_chat(data) -> dict[str, list[str]]:
     discordId = "None"
   else:
     discordId = data['discordUser']['id']
+
   output = submit(data['playerName'], discordId, "CHAT", data['extra']['message'], 0, 1, "CHAT")
+
   if output is not None:
     # print data prettyfied
     # print(json.dumps(data, indent = 2))

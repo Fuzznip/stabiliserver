@@ -5,5 +5,5 @@ reload_cache = Blueprint("reload_cache", __name__)
 
 @reload_cache.route('', methods = [ 'POST' ])
 def handle_request():
-  refresh_cache(force = True)
-  return jsonify({"message": "Cache reloaded"})
+    refresh_cache(force = True)
+    return jsonify({"message": "Cache reloaded"})

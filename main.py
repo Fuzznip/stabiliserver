@@ -22,8 +22,8 @@ app.register_blueprint(drop_submission_route, url_prefix = '/stability')
 app.register_blueprint(bot_submission_route, url_prefix = '/stabilibot')
 
 if __name__ == '__main__':
-  from waitress import serve
-  print("Starting server...")
-  port = os.environ.get('PORT', 8080)
-  host = os.environ.get('HOST', "0.0.0.0")
-  serve(app, host = host, port = port)
+    from waitress import serve
+    print("Starting server...")
+    port = os.environ.get('PORT', 8080)
+    host = os.environ.get('HOST', "0.0.0.0")
+    serve(app, host = host, port = port)

@@ -70,7 +70,6 @@ def refresh_cache(force = False):
 
     # Get data from the first column of the sheet except the first row, lower case it, and store it in trackedItems
     trackedItems = [item.lower() for item in readSheet.col_values(1)[1:]]
-    print(trackedItems)
     # Get data from the rest of the columns (B, C, D, ...) and store it in inputColumns
     inputColumns = readSheet.get_all_values()
     # Transpose the inputColumns to convert from a list of rows to a list of columns
@@ -159,6 +158,10 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType):
     
     # If the query is not in the drop dictionary, check if the item is in the tracked items
     if item.lower() in trackedItems:
+        write(rsn, discordId, source, item, itemPrice, itemQuantity, submitType)
+        print(submitType + ": " + rsn + " - " + item + " (" + source + ")")
+
+    if item.lower() + ":" + source.lower() in trackedItems:
         write(rsn, discordId, source, item, itemPrice, itemQuantity, submitType)
         print(submitType + ": " + rsn + " - " + item + " (" + source + ")")
 

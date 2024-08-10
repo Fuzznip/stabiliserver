@@ -471,6 +471,8 @@ def handle_request():
         # Save the image to memory
         file.save("lootImage.png")
 
+        print(result)
+
         for threadId, itemList in result.items():
             # for each item in result, send a webhook
             embeds = [
@@ -482,6 +484,9 @@ def handle_request():
                     }
                 }
             ]
+
+            # Remove duplicate item names in item list
+            itemList = list(set(itemList))
 
             # Join all items in itemList with a newline character separating them
             embeds[0]['description'] = "\n".join(itemList)

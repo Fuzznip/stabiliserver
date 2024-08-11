@@ -354,6 +354,8 @@ def parse_chat(data) -> dict[str, list[str]]:
             return "phantom muspah"
         elif "kalphite queen" in item:
             return "kalphite queen"
+        elif "vorkath" in item:
+            return "vorkath"
         else:
             return "Not Implemented"
 

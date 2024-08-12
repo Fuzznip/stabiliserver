@@ -16,6 +16,8 @@ def handle_request():
     if data is None:
         return jsonify({ "error": "Invalid request" })
 
+    print(data)
+
     output = submit(data["user"], format(data["discordId"], '.0f'), data["source"], data["item"], 0, 0, "MANUAL")
     screenshotItems = {}
     if output is not None:

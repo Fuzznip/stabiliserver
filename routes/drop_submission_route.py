@@ -133,6 +133,8 @@ def parse_slayer(data) -> dict[str, list[str]]:
                     screenshotItems[threadId].append(output["message"])
                 else:
                     screenshotItems[threadId].append("Slayer Task")
+    else:
+        print("SLAYER - " + rsn + " received 0 Slayer Points from a task and was not counted")
 
 
     # print data prettyfied

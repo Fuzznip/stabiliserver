@@ -138,7 +138,7 @@ def parse_slayer(data) -> dict[str, list[str]]:
 
 
     # print data prettyfied
-    print(json.dumps(data, indent = 2))
+    # print(json.dumps(data, indent = 2))
     return screenshotItems
 
 # function to parse quest data

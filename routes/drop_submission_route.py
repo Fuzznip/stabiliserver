@@ -108,7 +108,8 @@ def parse_slayer(data) -> dict[str, list[str]]:
     else:
         discordId = data['discordUser']['id']
     pointsReceived = data['extra']['slayerPoints']
-    if pointsReceived > 0:
+    # convert pointsReceived to int
+    if int(pointsReceived) > 0:
         output = submit(rsn, discordId, "SLAYER", "Slayer point", 0, pointsReceived, "SLAYER")
 
         if output is not None:

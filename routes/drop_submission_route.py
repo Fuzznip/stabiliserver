@@ -99,10 +99,44 @@ def parse_loot(data) -> dict[str, list[str]]:
 
 # function to parse slayer data
 def parse_slayer(data) -> dict[str, list[str]]:
-    print("SLAYER")
+    screenshotItems: dict[str, list[str]] = {}
+
+    rsn = data['playerName']
+    # Check if discordUser exists
+    if 'discordUser' not in data:
+        discordId = "None"
+    else:
+        discordId = data['discordUser']['id']
+    pointsReceived = data['extra']['slayerPoints']
+    if pointsReceived > 0:
+        output = submit(rsn, discordId, "SLAYER", "Slayer point", 0, pointsReceived, "SLAYER")
+
+        if output is not None:
+            threadIds = output["threadList"]
+            for threadId in threadIds:
+                if threadId not in screenshotItems:
+                    screenshotItems[threadId] = []
+                if "message" in output:
+                    screenshotItems[threadId].append(output["message"])
+                else:
+                    screenshotItems[threadId].append("Slayer Points")
+
+        output = submit(rsn, discordId, "SLAYER", "Slayer task", 0, 1, "SLAYER")
+
+        if output is not None:
+            threadIds = output["threadList"]
+            for threadId in threadIds:
+                if threadId not in screenshotItems:
+                    screenshotItems[threadId] = []
+                if "message" in output:
+                    screenshotItems[threadId].append(output["message"])
+                else:
+                    screenshotItems[threadId].append("Slayer Task")
+
+
     # print data prettyfied
-    # print(json.dumps(data, indent = 2))
-    return False
+    print(json.dumps(data, indent = 2))
+    return screenshotItems
 
 # function to parse quest data
 def parse_quest(data) -> dict[str, list[str]]:

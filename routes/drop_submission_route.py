@@ -108,7 +108,8 @@ def parse_slayer(data) -> dict[str, list[str]]:
     else:
         discordId = data['discordUser']['id']
     print(data['extra']['slayerPoints'])
-    pointsReceived = int(data['extra']['slayerPoints'])
+    # remove commas from slayerPoints
+    pointsReceived = int(data['extra']['slayerPoints'].replace(",", ""))
     print(pointsReceived)
     # convert pointsReceived to int
     if int(pointsReceived) > 0:

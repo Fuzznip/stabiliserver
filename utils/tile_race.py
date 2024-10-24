@@ -186,6 +186,7 @@ def progress(team, trigger, source, quantity = 1):
 def parse_tile_race_submission(type, rsn, discordId, source, item, price, quantity):
     # Check if the user list cache needs to be refreshed
     global lastUserListRefresh, tileRaceUserList
+    print("tile race submission")
 
     # Check if the cache is older than 10 minutes
     if (datetime.utcnow() - lastUserListRefresh).total_seconds() < 600:
@@ -194,7 +195,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
 
         lastUserListRefresh = datetime.utcnow()
 
-    # Check if the user is in the user list cache
+    # # Check if the user is in the user list cache
     if rsn.lower() not in tileRaceUserList:
         return None
 
@@ -208,14 +209,18 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     if (datetime.utcnow() - lastTriggerListRefresh).total_seconds() < 600:
         # Refresh the cache
         triggerList = db.get_tile_race_full_trigger_list()
+        triggerList = [x.lower() for x in triggerList]
+        print(f"Trigger list: {triggerList}")
 
         lastTriggerListRefresh = datetime.utcnow()
     # Check if the trigger is in the trigger list cache
 
     trigger = item.lower()
     if trigger not in triggerList:
+        print(f"Trigger {trigger} not found in trigger list")
         return None
 
+    print(f"Trigger {trigger} found in trigger list")
     # Update the progress of the team based on the submission
     # Grab the team from the user
     team = db.get_team(discordId)
@@ -225,7 +230,10 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         if team is None:
             return None
 
+    print(team)
+
     # Process the trigger for the team
+    print(team, trigger, source, quantity)
     progression = progress(team, trigger, source, quantity)
 
     # Check to see if the team has completed a quest or not

@@ -38,10 +38,17 @@ def ensure_user_db():
             cur.execute("CREATE TABLE IF NOT EXISTS sp2users (discord_id TEXT PRIMARY KEY, usernames TEXT[], team SERIAL REFERENCES sp2teams(team))")
             conn.commit()
 
+def ensure_game_db():
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Create game data table
+            cur.execute("CREATE TABLE IF NOT EXISTS sp2game (game_id SERIAL PRIMARY KEY, game_name TEXT, global_tasks INT[], total_tiles_completed INT, star_locations INT[], item_shop_locations INT[], start_time TIMESTAMP, end_time TIMESTAMP)")
+            conn.commit()
+
 def get_tile_race_full_user_list():
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
-            # Get the team from the table
+            # Get the full list of usernames in the game
             cur.execute("SELECT ARRAY_AGG(username) AS all_usernames FROM(SELECT UNNEST(usernames) AS username FROM sp2users) AS aggregated_usernames")
             value = cur.fetchall()
             return value[0][0] if value is not None else []
@@ -49,7 +56,7 @@ def get_tile_race_full_user_list():
 def get_tile_race_full_trigger_list():
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
-            # Get the team from the table
+            # Get the full list of triggers from all tiles in the game
             cur.execute("SELECT ARRAY_AGG(trigger) AS all_triggers FROM sp2tasks")
             value = cur.fetchall()
             return value[0][0] if value is not None else []
@@ -57,7 +64,7 @@ def get_tile_race_full_trigger_list():
 def get_team(discordId):
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
-            # Get the team from the table
+            # Get the team id from the table with the discord id
             cur.execute("SELECT team FROM sp2users WHERE discord_id = %s", (discordId, ))
             value = cur.fetchone()
             return value[0] if value is not None else 0
@@ -65,7 +72,7 @@ def get_team(discordId):
 def get_team_with_username(username):
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
-            # Get the team from the table
+            # Get the team id from the table with the username
             cur.execute("SELECT team FROM sp2users WHERE %s = ANY(usernames)", (username, ))
             value = cur.fetchone()
             return value[0] if value is not None else 0
@@ -73,10 +80,67 @@ def get_team_with_username(username):
 def get_team_tile(team):
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
-            # Get the team from the table
+            # Get the team's current tile from the table
             cur.execute("SELECT current_tile FROM sp2teams WHERE team = %s", (team, ))
             value = cur.fetchone()
             return value[0] if value is not None else 0
+
+def get_tile_tasks(tile):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the tile tasks from the given tile
+            cur.execute("SELECT tile_tasks FROM sp2tiles WHERE tile_id = %s", (tile, ))
+            value = cur.fetchone()
+            return value[0] if value is not None else []
+
+def get_region_tasks(tile):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the region tasks from the given tile
+            cur.execute("SELECT region_tasks FROM sp2tiles WHERE tile_id = %s", (tile, ))
+            value = cur.fetchone()
+            return value[0] if value is not None else []
+
+def get_global_tasks():
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the global tasks for the game
+            cur.execute("SELECT global_tasks FROM sp2game WHERE game_id = 1")
+            value = cur.fetchone()
+            return value[0] if value is not None else []
+
+def get_task_trigger(task):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the trigger from the task
+            cur.execute("SELECT trigger FROM sp2tasks WHERE task_id = %s", (task, ))
+            value = cur.fetchone()
+            return value[0] if value is not None else ""
+
+def get_task_source(task):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the source from the task
+            cur.execute("SELECT source FROM sp2tasks WHERE task_id = %s", (task, ))
+            value = cur.fetchone()
+            return value[0] if value is not None else ""
+
+def get_progress(team):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the progress from the team
+            cur.execute("SELECT tile_progress FROM sp2teams WHERE team = %s", (team, ))
+            value = cur.fetchone()
+            return value[0] if value is not None else {}
+
+def get_task_quantity(task):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the quantity from the task
+            cur.execute("SELECT quantity FROM sp2tasks WHERE task_id = %s", (task, ))
+            value = cur.fetchone()
+            return value[0] if value is not None else 1
+
 
 # def ensure_tile_db():
 #     with dbpool.connection() as conn:

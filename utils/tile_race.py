@@ -9,6 +9,7 @@ from datetime import datetime
 
 lastUserListRefresh = datetime.utcnow()
 lastTriggerListRefresh = datetime.utcnow()
+firstRefresh = True
 tileRaceUserList = []
 triggerList = []
 
@@ -142,8 +143,29 @@ def is_part_of_task(task, trigger, source):
 
 def get_progress(team, task):
     progress = db.get_progress(team)
+    print(progress)
+    if progress is None:
+        db.save_progress(team, {})
+        progress = db.get_progress(team)
 
     return progress[task] if task in progress else None
+
+def roll_new_global_challenge():
+    # TODO: create a table for lists of tasks as potential global challenges
+
+    # # Get list of potential global challenges
+    # global_tasks = db.get_global_tasks()
+    # current_global_challenge = db.get_current_global_challenge()
+    #
+    # # Pick a suitable global challenge
+    # # TODO: Implement a smart way to pick a global challenge
+    # # pick a random number between 0 and global tasks length - 1
+    # random_index = random.randint(0, len(global_tasks) - 1)
+    # # ensure that the global challenge is not the same as the current global challenge
+    # 
+    # global_challenge = global_tasks[random_index]
+    pass
+
 
 def complete_challenge(team, challenge_type):
     if challenge_type == "Global":
@@ -184,47 +206,68 @@ def complete_challenge(team, challenge_type):
 
         db.complete_challenge(team, coins = 5, die = 4) # 5 coins and 4 sided die
 
+def get_challenge_name(team, challenge_type):
+    if challenge_type == "Global":
+        return db.get_global_challenge_name()
+    elif challenge_type == "Region":
+        return db.get_region_challenge_name(db.get_team_tile(team))
+    elif challenge_type == "Tile":
+        return db.get_tile_challenge_name(db.get_team_tile(team))
+
 def progress_quest(tasks, team, trigger, source, quantity = 1, challenge_type = "Tile"):
     for task in tasks:
+        print(f"Checking task {task}")
         if not is_part_of_task(task, trigger, source):
+            print(f"trigger {trigger} and source {source} not part of task {task}")
             continue
 
         # Get current progress for the task
+        print("Getting progress")
         progress = get_progress(team, task)
+        print(progress)
         if progress is None:
+            print("Progress is None")
             progress = 0
 
         updated_progress = progress + quantity
+        print(f"Updated progress: {updated_progress}")
 
         # Check if the task is complete
         if updated_progress >= db.get_task_quantity(task):
+            print(f"Task {task} is complete")
             # Complete the task
             complete_challenge(team, challenge_type)
             
             return {
-                "message": f"{team} has completed a {challenge_type} Challenge: {db.get_challenge_name(challenge)}",
+                "message": f"{team} has completed a {challenge_type} Challenge: {get_challenge_name(team, challenge_type)}",
                 "thread_id": THREAD_ID
             }
         else:
-            db.save_progress(team, task, updated_progress)
+            print(f"Progress saved for task {task}")
+            db.save_task_progress(team, task, updated_progress)
 
     return None
 
-def progress(team, trigger, source, quantity = 1):
+def progress_team(team, trigger, source, quantity = 1):
+    print(f"Progressing {team} with trigger {trigger} from {source} with quantity {quantity}")
     # Grab the current quests from the team.
     tile = db.get_team_tile(team)
+    print(f"Tile: {tile}")
     
     # Progress the global quest
+    print(f"Global tasks: {db.get_global_tasks()}")
     progression = progress_quest(db.get_tile_tasks(tile), team, trigger, source, quantity, "Global")
     if progression is not None:
         return progression
     
     # Progress the region quest
+    print(f"Region tasks: {db.get_region_tasks(tile)}")
     progression = progress_quest(db.get_region_tasks(tile), team, trigger, source, quantity, "Region")
     if progression is not None:
         return progression
     
     # Progress the tile quest
+    print(f"Tile tasks: {db.get_tile_tasks(tile)}")
     progression = progress_quest(db.get_global_tasks(), team, trigger, source, quantity, "Tile")
     if progression is not None:
         return progression
@@ -234,19 +277,22 @@ def progress(team, trigger, source, quantity = 1):
 def parse_tile_race_submission(type, rsn, discordId, source, item, price, quantity):
     # Check if the user list cache needs to be refreshed
     global lastUserListRefresh, tileRaceUserList
+    global firstRefresh
     # if the price * quantity is greater than 100,000 then log it
     if price * quantity > 100000:
         print(f"{rsn} <@{discordId}> submitted a drop worth {price * quantity} gp: {item} from {source}")
 
     # Check if the cache is older than 10 minutes
-    if (datetime.utcnow() - lastUserListRefresh).total_seconds() < 600:
+    if (datetime.utcnow() - lastUserListRefresh).total_seconds() < 600 or firstRefresh:
         # Refresh the cache
+        print("Refreshing user list cache")
         tileRaceUserList = db.get_tile_race_full_user_list()
 
         lastUserListRefresh = datetime.utcnow()
 
     # # Check if the user is in the user list cache
     if rsn.lower() not in tileRaceUserList:
+        print(f"User {rsn} not found in user list")
         return None
 
     # Parse the submission to see if it is an item drop or kc trigger
@@ -256,7 +302,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     global lastTriggerListRefresh, triggerList
 
     # Check if the cache is older than 10 minutes
-    if (datetime.utcnow() - lastTriggerListRefresh).total_seconds() < 600:
+    if (datetime.utcnow() - lastTriggerListRefresh).total_seconds() < 600 or firstRefresh:
         # Refresh the cache
         triggerList = db.get_tile_race_full_trigger_list()
         triggerList = [x.lower() for x in triggerList]
@@ -271,6 +317,8 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         return None
 
     print(f"Trigger {trigger} found in trigger list")
+    firstRefresh = False
+
     # Update the progress of the team based on the submission
     # Grab the team from the user
     team = db.get_team(discordId)
@@ -280,15 +328,16 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         if team is None:
             return None
 
-    print(team)
+    print("player on team " + str(team))
 
     # Process the trigger for the team
     print(team, trigger, source, quantity)
-    progression = progress(team, trigger, source, quantity)
+    progression = progress_team(team, trigger, source, quantity)
 
     # Check to see if the team has completed a quest or not
     if progression is not None:
         # If a quest has been completed, update the team with their rewards and return the message and thread id
+        print(progression)
         return progression
 
     return None

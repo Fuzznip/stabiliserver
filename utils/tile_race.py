@@ -395,7 +395,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
 
     print("player on team " + str(team))
 
-    if db.is_team_ready(team):
+    if db.is_team_ready(team) or db.is_team_rolling(team):
         print(f"Team {db.get_team_name(team)} is rolling")
         return None
 

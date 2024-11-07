@@ -49,7 +49,7 @@ def ensure_team_db():
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
             # Create teams table
-            cur.execute("CREATE TABLE IF NOT EXISTS sp2teams (team SERIAL PRIMARY KEY, team_name TEXT, team_image TEXT, previous_tile INT, current_tile INT, stars INT, coins INT, coins_gained_this_tile INT, items INT[], buffs INT[], debuffs INT[], progress jsonb, ready BOOLEAN, main_die_sides INT, main_die_modifier INT, extra_dice_sides INT[], role_id TEXT, text_channel_id TEXT, voice_channel_id TEXT)")
+            cur.execute("CREATE TABLE IF NOT EXISTS sp2teams (team SERIAL PRIMARY KEY, team_name TEXT, team_image TEXT, previous_tile INT, current_tile INT, stars INT, coins INT, coins_gained_this_tile INT, items INT[], buffs INT[], debuffs INT[], progress jsonb, ready BOOLEAN, rolling BOOLEAN, main_die_sides INT, main_die_modifier INT, extra_dice_sides INT[], role_id TEXT, text_channel_id TEXT, voice_channel_id TEXT)")
             conn.commit()
 
 def ensure_user_db():
@@ -217,6 +217,14 @@ def is_team_ready(team):
         with conn.cursor() as cur:
             # Get the team from the table
             cur.execute("SELECT ready FROM sp2teams WHERE team = %s", (team, ))
+            value = cur.fetchone()
+            return value[0] if value is not None else None
+
+def is_team_rolling(team):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the team from the table
+            cur.execute("SELECT rolling FROM sp2teams WHERE team = %s", (team, ))
             value = cur.fetchone()
             return value[0] if value is not None else None
 

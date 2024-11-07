@@ -14,8 +14,15 @@ from routes.bot_submission_route import bot_submission_route
 app = Flask(__name__)
 CORS(app)
 
-utils.db.ensure_drops_db()
+# utils.db.ensure_drops_db()
+utils.db.ensure_task_db()
+utils.db.ensure_challenge_db()
+utils.db.ensure_trigger_db()
 utils.db.ensure_tile_db()
+utils.db.ensure_global_challenges_list_db()
+utils.db.ensure_team_db()
+utils.db.ensure_user_db()
+utils.db.ensure_game_db()
 
 app.register_blueprint(reload_cache, url_prefix = '/reload_cache')
 app.register_blueprint(drop_submission_route, url_prefix = '/stability')

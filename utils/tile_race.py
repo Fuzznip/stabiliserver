@@ -218,6 +218,10 @@ def complete_challenge(team, challenge_type):
 
         db.complete_challenge(team, coins = 50, die = 12) # 50 coins and 12 sided die
         db.increment_challenge_count()
+
+        message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(global_challenge)}\n"
+        message += f"They have been awarded 50 coins and a 12 sided die!"
+        return message
     elif challenge_type == "Region":
         # If it's a region challenge, complete the region challenge and reset the tile progress
         progress = db.get_progress(team)
@@ -237,6 +241,10 @@ def complete_challenge(team, challenge_type):
 
         db.complete_challenge(team, coins = 20, die = 8) # 20 coins and 8 sided die
         db.increment_challenge_count()
+
+        message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(region_challenge)}\n"
+        message += f"They have been awarded 20 coins and an 8 sided die!"
+        return message
     elif challenge_type == "Tile":
         # If it's a tile challenge, complete the tile challenge
         progress = db.get_progress(team)
@@ -250,6 +258,10 @@ def complete_challenge(team, challenge_type):
 
         db.complete_challenge(team, coins = 5, die = 4) # 5 coins and 4 sided die
         db.increment_challenge_count()
+
+        message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(tile_challenge)}\n"
+        message += f"They have been awarded 5 coins and a 4 sided die!"
+        return message
     elif challenge_type == "Coin":
         # If it's a coin challenge, complete the coin challenge
         db.add_coins(team, 1)
@@ -264,6 +276,10 @@ def complete_challenge(team, challenge_type):
 
         db.save_progress(team, progress)
         db.increment_challenge_count()
+
+        message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(coin_challenge)}\n"
+        message += f"They have been awarded 1 coin!"
+        return message
 
 def progress_quest(challenge, team, trigger, source, quantity, challenge_type):
     tasks = db.get_challenge_tasks(challenge)
@@ -283,9 +299,9 @@ def progress_quest(challenge, team, trigger, source, quantity, challenge_type):
                 print(f"task quantity: {db.get_task_quantity(task)}")
                 if updated_progress >= db.get_task_quantity(task):
                     # Complete the task
-                    complete_challenge(team, challenge_type)
+                    message = complete_challenge(team, challenge_type)
                     return {
-                        "message": f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(challenge)}",
+                        "message": message,
                         "thread_id": THREAD_ID
                     }
                 else:

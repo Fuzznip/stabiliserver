@@ -281,6 +281,13 @@ def increment_coins_gained_this_tile(team, coins):
             cur.execute("UPDATE sp2teams SET coins_gained_this_tile = coins_gained_this_tile + %s WHERE team = %s", (coins, team))
             conn.commit()
 
+def set_coins_gained_this_tile(team, coins):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Set the coins gained this tile
+            cur.execute("UPDATE sp2teams SET coins_gained_this_tile = %s WHERE team = %s", (coins, team))
+            conn.commit()
+
 def get_start_time():
     with dbpool.connection() as conn:
         with conn.cursor() as cur:

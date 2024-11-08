@@ -213,6 +213,7 @@ def complete_challenge(team, challenge_type):
         db.set_main_die_modifier(team, 0)
         db.set_extra_dice(team, [])
         db.increment_challenge_count()
+        db.set_coins_gained_this_tile(team, 0)
 
         message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(global_challenge)}\n"
         message += f"They have been awarded 80 coins and a 12 sided die!"
@@ -238,6 +239,7 @@ def complete_challenge(team, challenge_type):
         db.set_main_die_modifier(team, 0)
         db.set_extra_dice(team, [])
         db.increment_challenge_count()
+        db.set_coins_gained_this_tile(team, 0)
 
         message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(region_challenge)}\n"
         message += f"They have been awarded 40 coins and an 8 sided die!"
@@ -257,6 +259,7 @@ def complete_challenge(team, challenge_type):
         db.set_main_die_modifier(team, 0)
         db.set_extra_dice(team, [])
         db.increment_challenge_count()
+        db.set_coins_gained_this_tile(team, 0)
 
         message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(tile_challenge)}\n"
         message += f"They have been awarded 10 coins and a 4 sided die!"

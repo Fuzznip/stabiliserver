@@ -412,8 +412,9 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     firstRefresh = False
     trigger = item.lower()
     # Check to see if it matches regex
-    match = re.match("sword quality: ([0-9]+).*", trigger)
+    match = re.match("sword completed in: [0-9]+m [0-9]+s at quality: ([0-9]+).*", trigger)
     if match:
+        print(f"Regex matches: {match.group(1)}")
         trigger = "sword quality"
         quantity = int(match.group(1))
 

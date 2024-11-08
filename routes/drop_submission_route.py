@@ -69,9 +69,18 @@ def parse_loot(data) -> dict[str, list[str]]:
     else:
         discordId = data['discordUser']['id']
     source = data['extra']['source']
-
     # Get item list
     items = data['extra']['items']
+
+    if "hunters' loot sack" in source.lower():
+        items.append({
+            "name": "Hunter rumour",
+            "priceEach": 0,
+            "quantity": 1
+        })
+
+        source = "Hunter rumour"
+
     # Loop through items
     for item in items:
         # Get item name
@@ -396,6 +405,20 @@ def parse_chat(data) -> dict[str, list[str]]:
             return "kalphite queen"
         elif "vorkath" in item:
             return "vorkath"
+        elif "phosani's nightmare" in item:
+            return "phosani's nightmare"
+        elif "nightmare" in item:
+            return "nightmare"
+        elif "wintertodt" in item:
+            return "wintertodt"
+        elif "tempoross" in item:
+            return "tempoross"
+        elif "guardians of the rift" in item:
+            return "guardians of the rift"
+        elif "alchemical hydra" in item:
+            return "alchemical hydra"
+        elif "colossal wyrm" in item:
+            return "colossal wyrm"
         else:
             return "Not Implemented"
 
@@ -504,8 +527,6 @@ def handle_request():
 
     if 'file' in request.files and image_required:
         file = request.files['file']
-        # Take payload data and image data and send it to WEBHOOK env variable
-        webhook = os.environ.get("WEBHOOK")
 
         # Send the file to webhook
         data = json.loads(json_data)
@@ -517,9 +538,10 @@ def handle_request():
 
         for threadId, itemList in result.items():
             # for each item in result, send a webhook
+            print(data)
             embeds = [
                 {
-                    'author': data['embeds'][0]['author'],
+                    'author': data['embeds'][0]['author'] if data['embeds'] is not None and len(data['embeds']) > 0 else {'name': 'Stabilibot'},
                     'description': '',
                     'image': {
                         'url': 'attachment://lootImage.png'
@@ -545,8 +567,20 @@ def handle_request():
                     'embeds': embeds
                 }
 
-                payload_link = webhook + '?thread_id=' + threadId
+                print(threadId)
+                # print type of threadId
+                print(type(threadId))
+                # Take payload data and image data and send it to WEBHOOK env variable
+                if threadId != "":
+                    print("Posting to thread")
+                    webhook = os.environ.get("FORUM_WEBHOOK")
+                    payload_link = webhook + '?thread_id=' + threadId
+                else:
+                    print("Posting to webhook")
+                    webhook = os.environ.get("CHANNEL_WEBHOOK")
+                    payload_link = webhook
                 result = requests.post(payload_link, data = {'payload_json': json.dumps(payload)}, files = files)
+                print({"payload_json": json.dumps(payload)})
 
                 try:
                     result.raise_for_status()

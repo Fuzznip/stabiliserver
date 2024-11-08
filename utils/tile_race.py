@@ -5,129 +5,443 @@ import utils.db as db
 from dotenv import load_dotenv
 load_dotenv()
 import os
+from datetime import datetime
+import random
 
-THREAD_ID = os.environ.get("THREAD_ID", 1232048775405764789)
+lastUserListRefresh = datetime.now()
+lastTriggerListRefresh = datetime.now()
+firstRefresh = True
+tileRaceUserList = []
+triggerList = []
 
-KC_REGEX = "your [\w\W]+ count is: ([0-9]+)\."
-COIN_TO_STAR_THRESHOLD = 10
-MAX_SIDE_QUEST_COINS = 8
+THREAD_ID = os.environ.get("THREAD_ID", "")
+#
+# KC_REGEX = "your [\w\W]+ count is: ([0-9]+)\."
+# COIN_TO_STAR_THRESHOLD = 10
+# MAX_SIDE_QUEST_COINS = 8
+#
+# def is_user_in_race(rsn):
+#     # lower case name first
+#     userId = db.get_user_from_username(rsn.lower())
+#     if userId is None:
+#         return False
+#
+#     return not db.get_team(userId) is None
+#
+# def parse_kc_type(item: str) -> str:
+#     if "tombs of amascut" in item:
+#         if "tombs of amascut: entry mode" in item:
+#             return "tombs of amascut entry mode"
+#         elif "tombs of amascut: expert mode" in item:
+#             return "tombs of amascut expert mode"
+#         return "tombs of amascut"
+#     elif "chambers of xeric" in item:
+#         if  "chambers of xeric challenge mode" in item:
+#             return "chambers of xeric challenge mode"
+#         return "chambers of xeric"
+#     elif "theatre of blood" in item:
+#         if "theatre of blood: entry mode" in item:
+#             return "theatre of blood entry mode"
+#         elif "theatre of blood: hard mode" in item:
+#             return "theatre of blood hard mode"
+#         return "theatre of blood"
+#     elif "giant mole" in item:
+#         return "giant mole"
+#     elif "scurrius" in item:
+#         return "scurrius"
+#     elif "tzkal-zuk" in item:
+#         return "tzkal-zuk"
+#     elif "tztok-jad" in item:
+#         return "tztok-jad"
+#     elif "agility pyramid" in item:
+#         return "agility pyramid"
+#     elif "agility arena" in item:
+#         return "agility arena"
+#     else:
+#         return "Not Implemented"
+#
+# def add_side_quest_progress(team, tile, item, trigger, progress = 1):
+#     completion = False
+#     # Check if the count for the trigger is met
+#     trigger_count = trigger["count"]
+#     # get the current count for the trigger from the database
+#     side_progress = db.get_side_progress(team, tile)
+#
+#     if item in side_progress:
+#         side_progress[item]["value"] = int(side_progress[item]["value"]) + progress
+#     else:
+#         side_progress[item] = {}
+#         side_progress[item]["value"] = progress
+#     current_count = side_progress[item]["value"]
+#
+#     if current_count >= trigger_count:
+#         side_coins_gained = 0
+#         for i in side_progress:
+#             if "gained" in side_progress[i]:
+#                 side_coins_gained += side_progress[i]["gained"]
+#
+#         if side_coins_gained >= MAX_SIDE_QUEST_COINS:
+#             return False
+#
+#         trigger_points = trigger["points"]
+#         if "gained" in side_progress[item]:
+#             trigger_points = min(MAX_SIDE_QUEST_COINS - side_progress[item]["gained"], trigger_points)
+#             side_progress[item]["gained"] += trigger_points
+#         else:
+#             side_progress[item]["gained"] = trigger_points
+#
+#         coins_count = db.get_coin_count(team) 
+#         if coins_count + trigger_points >= COIN_TO_STAR_THRESHOLD:
+#             db.set_coins(team, coins_count + trigger_points - COIN_TO_STAR_THRESHOLD)
+#             db.add_stars(team, 1)
+#         else:
+#             db.add_coins(team, trigger_points)
+#         
+#         side_progress[item]["value"] -= trigger_count
+#         completion = True
+#
+#     db.save_side_progress(team, tile, side_progress)
+#     return completion
+#
+# def add_main_quest_progress(team, tile, item, trigger, progress = 1):
+#     completion = False
+#     # Check if the count for the trigger is met
+#     trigger_count = trigger["count"]
+#     # get the current count for the trigger from the database
+#     main_progress = db.get_main_progress(team, tile)
+#
+#     if item in main_progress:
+#         main_progress[item]["value"] = int(main_progress[item]["value"]) + progress
+#     else:
+#         main_progress[item] = {}
+#         main_progress[item]["value"] = progress
+#
+#     current_count = 0
+#     for t in trigger["trigger"]:
+#         # get everything before ":" if there is one
+#         t = t.split(":")[0]
+#         if t.lower() in main_progress:
+#             current_count += main_progress[t.lower()]["value"]
+#
+#     trigger_count = trigger["count"]
+#     if current_count >= trigger_count:
+#         db.complete_tile(team, tile)
+#         # add stars
+#         db.add_stars(team, trigger["points"])
+#         completion = True
+#     else:
+#         db.save_main_progress(team, tile, main_progress)
+#
+#     return completion
 
-def is_user_in_race(rsn):
-    # lower case name first
-    userId = db.get_user_from_username(rsn.lower())
-    if userId is None:
+def matches_trigger(trigger_id, trigger, source):
+    trigger_data = db.get_trigger(trigger_id)
+    # print(trigger_data)
+    if trigger_data is None:
         return False
 
-    return not db.get_team(userId) is None
-
-def parse_kc_type(item: str) -> str:
-    if "tombs of amascut" in item:
-        if "tombs of amascut: entry mode" in item:
-            return "tombs of amascut entry mode"
-        elif "tombs of amascut: expert mode" in item:
-            return "tombs of amascut expert mode"
-        return "tombs of amascut"
-    elif "chambers of xeric" in item:
-        if  "chambers of xeric challenge mode" in item:
-            return "chambers of xeric challenge mode"
-        return "chambers of xeric"
-    elif "theatre of blood" in item:
-        if "theatre of blood: entry mode" in item:
-            return "theatre of blood entry mode"
-        elif "theatre of blood: hard mode" in item:
-            return "theatre of blood hard mode"
-        return "theatre of blood"
-    elif "giant mole" in item:
-        return "giant mole"
-    elif "scurrius" in item:
-        return "scurrius"
-    elif "tzkal-zuk" in item:
-        return "tzkal-zuk"
-    elif "tztok-jad" in item:
-        return "tztok-jad"
-    elif "agility pyramid" in item:
-        return "agility pyramid"
-    elif "agility arena" in item:
-        return "agility arena"
+    if len(trigger_data) == 1:
+        trigger_data_trigger = trigger_data[0].lower()
+        trigger_data_source = ""
     else:
-        return "Not Implemented"
+        trigger_data_trigger = trigger_data[0].lower()
+        trigger_data_source = trigger_data[1].lower()
 
-def add_side_quest_progress(team, tile, item, trigger, progress = 1):
-    completion = False
-    # Check if the count for the trigger is met
-    trigger_count = trigger["count"]
-    # get the current count for the trigger from the database
-    side_progress = db.get_side_progress(team, tile)
-
-    if item in side_progress:
-        side_progress[item]["value"] = int(side_progress[item]["value"]) + progress
+    if trigger_data_source == "":
+        if trigger_data_trigger == trigger.lower():
+            return True
     else:
-        side_progress[item] = {}
-        side_progress[item]["value"] = progress
-    current_count = side_progress[item]["value"]
+        if trigger_data_trigger == trigger.lower() and trigger_data_source == source.lower():
+            return True
 
-    if current_count >= trigger_count:
-        side_coins_gained = 0
-        for i in side_progress:
-            if "gained" in side_progress[i]:
-                side_coins_gained += side_progress[i]["gained"]
+    return False
 
-        if side_coins_gained >= MAX_SIDE_QUEST_COINS:
-            return False
+def get_progress(team, challenge, task):
+    progress = db.get_progress(team)
+    # print(progress)
+    if progress is None:
+        db.save_progress(team, {})
+        progress = db.get_progress(team)
 
-        trigger_points = trigger["points"]
-        if "gained" in side_progress[item]:
-            trigger_points = min(MAX_SIDE_QUEST_COINS - side_progress[item]["gained"], trigger_points)
-            side_progress[item]["gained"] += trigger_points
+    return progress[str(challenge)][str(task)] if str(challenge) in progress and str(task) in progress[str(challenge)] else 0
+
+def roll_new_global_challenge():
+    globalChallenges = db.get_global_challenges()
+    currentGlobalChallenge = db.get_global_challenge()
+    while currentGlobalChallenge == db.get_global_challenge():
+        currentGlobalChallenge = globalChallenges[random.randint(0, len(globalChallenges) - 1)]
+
+    db.set_global_challenge(currentGlobalChallenge)
+
+def get_challenge_triggers(challenge_id):
+    triggers = []
+    tasks = db.get_challenge_tasks(challenge_id)
+
+    for task in tasks:
+        task_triggers = db.get_task_triggers(task)
+        triggers.extend(task_triggers)
+
+    # Remove duplicates
+    triggers = list(set(triggers))
+
+    return triggers
+
+def complete_challenge(team, challenge_type):
+    print(f"Completing {challenge_type} challenge for team {db.get_team_name(team)}")
+    tile = db.get_team_tile(team)
+    if challenge_type == "Global":
+        # If it's a global challenge, complete the global challenge and reset the tile progress
+        # Then, create a new global challenge
+        progress = db.get_progress(team)
+        tile_challenge = db.get_tile_challenge(tile)
+        for task in db.get_challenge_tasks(tile_challenge):
+            if str(tile_challenge) not in progress:
+                progress[str(tile_challenge)] = {}
+            progress[str(tile_challenge)][str(task)] = 0
+
+        global_challenge = db.get_global_challenge()
+        for task in db.get_challenge_tasks(global_challenge):
+            if str(global_challenge) not in progress:
+                progress[str(global_challenge)] = {}
+            progress[str(global_challenge)][str(task)] = 0
+
+        db.save_progress(team, progress)
+
+        roll_new_global_challenge()
+
+        db.complete_challenge(team, coins = 80, die = 12) # 80 coins and 12 sided die
+        db.set_main_die_modifier(team, 0)
+        db.set_extra_dice(team, [])
+        db.increment_challenge_count()
+
+        message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(global_challenge)}\n"
+        message += f"They have been awarded 80 coins and a 12 sided die!"
+        return message
+    elif challenge_type == "Region":
+        # If it's a region challenge, complete the region challenge and reset the tile progress
+        progress = db.get_progress(team)
+        tile_challenge = db.get_tile_challenge(tile)
+        for task in db.get_challenge_tasks(tile_challenge):
+            if str(tile_challenge) not in progress:
+                progress[str(tile_challenge)] = {}
+            progress[str(tile_challenge)][str(task)] = 0
+
+        region_challenge = db.get_region_challenge(tile)
+        for task in db.get_challenge_tasks(region_challenge):
+            if str(region_challenge) not in progress:
+                progress[str(region_challenge)] = {}
+            progress[str(region_challenge)][str(task)] = 0
+
+        db.save_progress(team, progress)
+
+        db.complete_challenge(team, coins = 40, die = 8) # 20 coins and 8 sided die
+        db.set_main_die_modifier(team, 0)
+        db.set_extra_dice(team, [])
+        db.increment_challenge_count()
+
+        message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(region_challenge)}\n"
+        message += f"They have been awarded 40 coins and an 8 sided die!"
+        return message
+    elif challenge_type == "Tile":
+        # If it's a tile challenge, complete the tile challenge
+        progress = db.get_progress(team)
+        tile_challenge = db.get_tile_challenge(tile)
+        for task in db.get_challenge_tasks(tile_challenge):
+            if str(tile_challenge) not in progress:
+                progress[str(tile_challenge)] = {}
+            progress[str(tile_challenge)][str(task)] = 0
+
+        db.save_progress(team, progress)
+
+        db.complete_challenge(team, coins = 10, die = 4) # 5 coins and 4 sided die
+        db.set_main_die_modifier(team, 0)
+        db.set_extra_dice(team, [])
+        db.increment_challenge_count()
+
+        message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(tile_challenge)}\n"
+        message += f"They have been awarded 10 coins and a 4 sided die!"
+        return message
+    elif challenge_type == "Coin":
+        if db.get_coins_gained_this_tile(team) < 10:
+            # If it's a coin challenge, complete the coin challenge
+            db.add_coins(team, 5)
+            db.increment_coins_gained_this_tile(team, 5)
+
+            progress = db.get_progress(team)
+            coin_challenge = db.get_coin_challenge(tile)
+            for task in db.get_challenge_tasks(coin_challenge):
+                if str(coin_challenge) not in progress:
+                    progress[str(coin_challenge)] = {}
+                progress[str(coin_challenge)][str(task)] = 0
+
+            db.save_progress(team, progress)
+            db.increment_challenge_count()
+
+            message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(coin_challenge)}\n"
+            message += f"They have been awarded 5 coins!"
+            return message
         else:
-            side_progress[item]["gained"] = trigger_points
+            progress = db.get_progress(team)
+            coin_challenge = db.get_coin_challenge(tile)
+            for task in db.get_challenge_tasks(coin_challenge):
+                if str(coin_challenge) not in progress:
+                    progress[str(coin_challenge)] = {}
+                progress[str(coin_challenge)][str(task)] = 0
 
-        coins_count = db.get_coin_count(team) 
-        if coins_count + trigger_points >= COIN_TO_STAR_THRESHOLD:
-            db.set_coins(team, coins_count + trigger_points - COIN_TO_STAR_THRESHOLD)
-            db.add_stars(team, 1)
-        else:
-            db.add_coins(team, trigger_points)
-        
-        side_progress[item]["value"] -= trigger_count
-        completion = True
+            db.save_progress(team, progress)
+            db.increment_challenge_count()
 
-    db.save_side_progress(team, tile, side_progress)
-    return completion
+            message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(coin_challenge)}\n"
+            message += f"But they have already gained 10 coins this tile, so they have not been awarded any coins!"
+            return message
 
-def add_main_quest_progress(team, tile, item, trigger, progress = 1):
-    completion = False
-    # Check if the count for the trigger is met
-    trigger_count = trigger["count"]
-    # get the current count for the trigger from the database
-    main_progress = db.get_main_progress(team, tile)
 
-    if item in main_progress:
-        main_progress[item]["value"] = int(main_progress[item]["value"]) + progress
-    else:
-        main_progress[item] = {}
-        main_progress[item]["value"] = progress
+def progress_quest(challenge, team, trigger, source, quantity, challenge_type):
+    tasks = db.get_challenge_tasks(challenge)
+    for task in tasks:
+        # Grab all of the triggers for the task
+        triggers = db.get_task_triggers(task)
+        for task_trigger in triggers:
+            if matches_trigger(task_trigger, trigger, source):
+                # Get current progress for the task
+                progress = get_progress(team, challenge, task)
+                # print(progress)
 
-    current_count = 0
-    for t in trigger["trigger"]:
-        # get everything before ":" if there is one
-        t = t.split(":")[0]
-        if t.lower() in main_progress:
-            current_count += main_progress[t.lower()]["value"]
+                updated_progress = progress + quantity
+                # print(f"Updated progress: {updated_progress}")
 
-    trigger_count = trigger["count"]
-    if current_count >= trigger_count:
-        db.complete_tile(team, tile)
-        # add stars
-        db.add_stars(team, trigger["points"])
-        completion = True
-    else:
-        db.save_main_progress(team, tile, main_progress)
+                # Check if the task is complete
+                # print(f"task quantity: {db.get_task_quantity(task)}")
+                if updated_progress >= db.get_task_quantity(task):
+                    # Complete the task
+                    message = complete_challenge(team, challenge_type)
+                    return {
+                        "message": message,
+                        "thread_id": THREAD_ID
+                    }
+                else:
+                    db.save_task_progress(team, challenge, task, updated_progress)
 
-    return completion
+    return None
+
+def progress_team(team, trigger, source, quantity = 1):
+    print(f"Progressing {team} with trigger {trigger} from {source} with quantity {quantity}")
+    # Grab the current quests from the team.
+    tile = db.get_team_tile(team)
+    # print(f"Tile: {tile}")
+    
+    # Progress the global quest
+    # print(f"Global challenge id: {db.get_global_challenge()}")
+    progression = progress_quest(db.get_global_challenge(), team, trigger, source, quantity, "Global")
+    if progression is not None:
+        return progression
+    
+    # Progress the region quest
+    # print(f"Region challenge id: {db.get_region_challenge(tile)}")
+    progression = progress_quest(db.get_region_challenge(tile), team, trigger, source, quantity, "Region")
+    if progression is not None:
+        return progression
+    
+    # Progress the tile quest
+    # print(f"Tile challenge id: {db.get_tile_challenge(tile)}")
+    progression = progress_quest(db.get_tile_challenge(tile), team, trigger, source, quantity, "Tile")
+    if progression is not None:
+        return progression
+
+    # Progress the coin quest
+    # print(f"Coin challenge id: {db.get_coin_challenge(tile)}")
+    progression = progress_quest(db.get_coin_challenge(tile), team, trigger, source, quantity, "Coin")
+    if progression is not None:
+        return progression
+
+    return None
 
 def parse_tile_race_submission(type, rsn, discordId, source, item, price, quantity):
+    # Check if the submission is between the start and end time
+    current_time = datetime.now()
+    start_time = db.get_start_time()
+    end_time = db.get_end_time()
+    # print(current_time, start_time, end_time)
+    if current_time < start_time or current_time > end_time:
+        print(f"Submission from {rsn} is outside of the start and end time")
+        return
+
+    # Check if the user list cache needs to be refreshed
+    global lastUserListRefresh, tileRaceUserList
+    global firstRefresh
+    # if the price * quantity is greater than 100,000 then log it
+    if price * quantity > 100000:
+        print(f"{rsn} <@{discordId}> submitted a drop worth {price * quantity} gp: {item} from {source}")
+
+    # Check if the cache is older than 10 minutes
+    if (datetime.now() - lastUserListRefresh).total_seconds() > 600 or firstRefresh:
+        # Refresh the cache
+        print("Refreshing user list cache")
+        tileRaceUserList = db.get_tile_race_full_user_list()
+        if tileRaceUserList is None:
+            print("There are no users in the user list!!!")
+            return None
+        tileRaceUserList = [x.lower() for x in tileRaceUserList]
+
+        lastUserListRefresh = datetime.now()
+
+    # # Check if the user is in the user list cache
+    if rsn.lower() not in tileRaceUserList:
+        print(f"User {rsn} not found in user list")
+        return None
+
+    # Parse the submission to see if it is an item drop or kc trigger
+    # Oh, we already do this in the check above so this is redundant :D
+
+    # Check if the trigger list cache needs to be refreshed
+    global lastTriggerListRefresh, triggerList
+
+    # Check if the cache is older than 10 minutes
+    if (datetime.now() - lastTriggerListRefresh).total_seconds() > 600 or firstRefresh:
+        # Refresh the cache
+        triggerList = db.get_tile_race_full_trigger_list()
+        triggerList = [x.lower() for x in triggerList]
+        # print(f"Trigger list: {triggerList}")
+
+        lastTriggerListRefresh = datetime.now()
+    # Check if the trigger is in the trigger list cache
+
+    firstRefresh = False
+    trigger = item.lower()
+    if trigger not in triggerList:
+        print(f"Trigger {trigger} not found in trigger list")
+        return None
+
+    print(f"Trigger {trigger} found in trigger list")
+
+    # Update the progress of the team based on the submission
+    # Grab the team from the user
+    team = db.get_team(discordId)
+    if team is None:
+        # Try again with username if discordId is not found
+        team = db.get_team_with_username(rsn)
+        if team is None:
+            print(f"Could not find team for user {rsn} with discordId {discordId}")
+            return None
+
+    # print("player on team " + str(team))
+
+    if db.is_team_ready(team) or db.is_team_rolling(team):
+        # print(f"Team {db.get_team_name(team)} is rolling")
+        return None
+
+    # Process the trigger for the team
+    # print(team, trigger, source, quantity)
+    progression = progress_team(team, trigger, source, quantity)
+
+    # Check to see if the team has completed a quest or not
+    if progression is not None:
+        # If a quest has been completed, update the team with their rewards and return the message and thread id
+        print(progression)
+        return progression
+
     return None
+
     if not is_user_in_race(rsn):
         return None
 

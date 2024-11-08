@@ -358,7 +358,7 @@ def parse_chat(data) -> dict[str, list[str]]:
         discordId = data['discordUser']['id']
 
     def check_string_for_kc(item):
-        KC_REGEX = "your [\w\W]+ count is: ([0-9]+)\."
+        KC_REGEX = "[\w\W]+: ([0-9]+)\."
         match = re.match(KC_REGEX, item)
         if not match:
             return "Not Implemented"

@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 from datetime import datetime
+import random
 
 lastUserListRefresh = datetime.now()
 lastTriggerListRefresh = datetime.now()
@@ -135,7 +136,7 @@ THREAD_ID = os.environ.get("THREAD_ID", "")
 
 def matches_trigger(trigger_id, trigger, source):
     trigger_data = db.get_trigger(trigger_id)
-    print(trigger_data)
+    # print(trigger_data)
     if trigger_data is None:
         return False
 
@@ -157,7 +158,7 @@ def matches_trigger(trigger_id, trigger, source):
 
 def get_progress(team, challenge, task):
     progress = db.get_progress(team)
-    print(progress)
+    # print(progress)
     if progress is None:
         db.save_progress(team, {})
         progress = db.get_progress(team)
@@ -165,20 +166,12 @@ def get_progress(team, challenge, task):
     return progress[str(challenge)][str(task)] if str(challenge) in progress and str(task) in progress[str(challenge)] else 0
 
 def roll_new_global_challenge():
-    # TODO: create a table for lists of tasks as potential global challenges
+    globalChallenges = db.get_global_challenges()
+    currentGlobalChallenge = db.get_global_challenge()
+    while currentGlobalChallenge == db.get_global_challenge():
+        currentGlobalChallenge = globalChallenges[random.randint(0, len(globalChallenges) - 1)]
 
-    # # Get list of potential global challenges
-    # global_tasks = db.get_global_tasks()
-    # current_global_challenge = db.get_current_global_challenge()
-    #
-    # # Pick a suitable global challenge
-    # # TODO: Implement a smart way to pick a global challenge
-    # # pick a random number between 0 and global tasks length - 1
-    # random_index = random.randint(0, len(global_tasks) - 1)
-    # # ensure that the global challenge is not the same as the current global challenge
-    # 
-    # global_challenge = global_tasks[random_index]
-    pass
+    db.set_global_challenge(currentGlobalChallenge)
 
 def get_challenge_triggers(challenge_id):
     triggers = []
@@ -216,11 +209,13 @@ def complete_challenge(team, challenge_type):
 
         roll_new_global_challenge()
 
-        db.complete_challenge(team, coins = 50, die = 12) # 50 coins and 12 sided die
+        db.complete_challenge(team, coins = 80, die = 12) # 80 coins and 12 sided die
+        db.set_main_die_modifier(team, 0)
+        db.set_extra_dice(team, [])
         db.increment_challenge_count()
 
         message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(global_challenge)}\n"
-        message += f"They have been awarded 50 coins and a 12 sided die!"
+        message += f"They have been awarded 80 coins and a 12 sided die!"
         return message
     elif challenge_type == "Region":
         # If it's a region challenge, complete the region challenge and reset the tile progress
@@ -239,11 +234,13 @@ def complete_challenge(team, challenge_type):
 
         db.save_progress(team, progress)
 
-        db.complete_challenge(team, coins = 20, die = 8) # 20 coins and 8 sided die
+        db.complete_challenge(team, coins = 40, die = 8) # 20 coins and 8 sided die
+        db.set_main_die_modifier(team, 0)
+        db.set_extra_dice(team, [])
         db.increment_challenge_count()
 
         message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(region_challenge)}\n"
-        message += f"They have been awarded 20 coins and an 8 sided die!"
+        message += f"They have been awarded 40 coins and an 8 sided die!"
         return message
     elif challenge_type == "Tile":
         # If it's a tile challenge, complete the tile challenge
@@ -256,30 +253,48 @@ def complete_challenge(team, challenge_type):
 
         db.save_progress(team, progress)
 
-        db.complete_challenge(team, coins = 5, die = 4) # 5 coins and 4 sided die
+        db.complete_challenge(team, coins = 10, die = 4) # 5 coins and 4 sided die
+        db.set_main_die_modifier(team, 0)
+        db.set_extra_dice(team, [])
         db.increment_challenge_count()
 
         message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(tile_challenge)}\n"
-        message += f"They have been awarded 5 coins and a 4 sided die!"
+        message += f"They have been awarded 10 coins and a 4 sided die!"
         return message
     elif challenge_type == "Coin":
-        # If it's a coin challenge, complete the coin challenge
-        db.add_coins(team, 1)
-        db.increment_coins_gained_this_tile(team, 1)
+        if db.get_coins_gained_this_tile(team) < 10:
+            # If it's a coin challenge, complete the coin challenge
+            db.add_coins(team, 5)
+            db.increment_coins_gained_this_tile(team, 5)
 
-        progress = db.get_progress(team)
-        coin_challenge = db.get_coin_challenge(tile)
-        for task in db.get_challenge_tasks(coin_challenge):
-            if str(coin_challenge) not in progress:
-                progress[str(coin_challenge)] = {}
-            progress[str(coin_challenge)][str(task)] = 0
+            progress = db.get_progress(team)
+            coin_challenge = db.get_coin_challenge(tile)
+            for task in db.get_challenge_tasks(coin_challenge):
+                if str(coin_challenge) not in progress:
+                    progress[str(coin_challenge)] = {}
+                progress[str(coin_challenge)][str(task)] = 0
 
-        db.save_progress(team, progress)
-        db.increment_challenge_count()
+            db.save_progress(team, progress)
+            db.increment_challenge_count()
 
-        message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(coin_challenge)}\n"
-        message += f"They have been awarded 1 coin!"
-        return message
+            message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(coin_challenge)}\n"
+            message += f"They have been awarded 5 coins!"
+            return message
+        else:
+            progress = db.get_progress(team)
+            coin_challenge = db.get_coin_challenge(tile)
+            for task in db.get_challenge_tasks(coin_challenge):
+                if str(coin_challenge) not in progress:
+                    progress[str(coin_challenge)] = {}
+                progress[str(coin_challenge)][str(task)] = 0
+
+            db.save_progress(team, progress)
+            db.increment_challenge_count()
+
+            message = f"{db.get_team_name(team)} has completed a {challenge_type} Challenge: {db.get_challenge_name(coin_challenge)}\n"
+            message += f"But they have already gained 10 coins this tile, so they have not been awarded any coins!"
+            return message
+
 
 def progress_quest(challenge, team, trigger, source, quantity, challenge_type):
     tasks = db.get_challenge_tasks(challenge)
@@ -290,13 +305,13 @@ def progress_quest(challenge, team, trigger, source, quantity, challenge_type):
             if matches_trigger(task_trigger, trigger, source):
                 # Get current progress for the task
                 progress = get_progress(team, challenge, task)
-                print(progress)
+                # print(progress)
 
                 updated_progress = progress + quantity
-                print(f"Updated progress: {updated_progress}")
+                # print(f"Updated progress: {updated_progress}")
 
                 # Check if the task is complete
-                print(f"task quantity: {db.get_task_quantity(task)}")
+                # print(f"task quantity: {db.get_task_quantity(task)}")
                 if updated_progress >= db.get_task_quantity(task):
                     # Complete the task
                     message = complete_challenge(team, challenge_type)
@@ -313,28 +328,28 @@ def progress_team(team, trigger, source, quantity = 1):
     print(f"Progressing {team} with trigger {trigger} from {source} with quantity {quantity}")
     # Grab the current quests from the team.
     tile = db.get_team_tile(team)
-    print(f"Tile: {tile}")
+    # print(f"Tile: {tile}")
     
     # Progress the global quest
-    print(f"Global challenge id: {db.get_global_challenge()}")
+    # print(f"Global challenge id: {db.get_global_challenge()}")
     progression = progress_quest(db.get_global_challenge(), team, trigger, source, quantity, "Global")
     if progression is not None:
         return progression
     
     # Progress the region quest
-    print(f"Region challenge id: {db.get_region_challenge(tile)}")
+    # print(f"Region challenge id: {db.get_region_challenge(tile)}")
     progression = progress_quest(db.get_region_challenge(tile), team, trigger, source, quantity, "Region")
     if progression is not None:
         return progression
     
     # Progress the tile quest
-    print(f"Tile challenge id: {db.get_tile_challenge(tile)}")
+    # print(f"Tile challenge id: {db.get_tile_challenge(tile)}")
     progression = progress_quest(db.get_tile_challenge(tile), team, trigger, source, quantity, "Tile")
     if progression is not None:
         return progression
 
     # Progress the coin quest
-    print(f"Coin challenge id: {db.get_coin_challenge(tile)}")
+    # print(f"Coin challenge id: {db.get_coin_challenge(tile)}")
     progression = progress_quest(db.get_coin_challenge(tile), team, trigger, source, quantity, "Coin")
     if progression is not None:
         return progression
@@ -346,7 +361,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     current_time = datetime.now()
     start_time = db.get_start_time()
     end_time = db.get_end_time()
-    print(current_time, start_time, end_time)
+    # print(current_time, start_time, end_time)
     if current_time < start_time or current_time > end_time:
         print(f"Submission from {rsn} is outside of the start and end time")
         return
@@ -386,7 +401,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         # Refresh the cache
         triggerList = db.get_tile_race_full_trigger_list()
         triggerList = [x.lower() for x in triggerList]
-        print(f"Trigger list: {triggerList}")
+        # print(f"Trigger list: {triggerList}")
 
         lastTriggerListRefresh = datetime.now()
     # Check if the trigger is in the trigger list cache
@@ -409,14 +424,14 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
             print(f"Could not find team for user {rsn} with discordId {discordId}")
             return None
 
-    print("player on team " + str(team))
+    # print("player on team " + str(team))
 
     if db.is_team_ready(team) or db.is_team_rolling(team):
-        print(f"Team {db.get_team_name(team)} is rolling")
+        # print(f"Team {db.get_team_name(team)} is rolling")
         return None
 
     # Process the trigger for the team
-    print(team, trigger, source, quantity)
+    # print(team, trigger, source, quantity)
     progression = progress_team(team, trigger, source, quantity)
 
     # Check to see if the team has completed a quest or not

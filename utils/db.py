@@ -35,14 +35,14 @@ def ensure_tile_db():
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
             # Create tiles table
-            cur.execute("CREATE TABLE IF NOT EXISTS sp2tiles (tile_id SERIAL PRIMARY KEY, tile_name TEXT, description TEXT, region_name TEXT, coin_challenge SERIAL references sp2challenges(id), task_challenge SERIAL references sp2challenges(id), region_challenge SERIAL references sp2challenges(id), has_star BOOLEAN, has_item_shop BOOLEAN, next_tiles INT[])")
+            cur.execute("CREATE TABLE IF NOT EXISTS sp2tiles (tile_id SERIAL PRIMARY KEY, tile_name TEXT, description TEXT, region_name TEXT, coin_challenge SERIAL references sp2challenges(id), task_challenge SERIAL references sp2challenges(id), region_challenge SERIAL references sp2challenges(id), has_star BOOLEAN, has_item_shop BOOLEAN, next_tiles INT[], position POINT)")
             conn.commit()
 
 def ensure_global_challenges_list_db():
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
             # Create global challenges list table
-            cur.execute("CREATE TABLE IF NOT EXISTS sp2globalchallenges (id SERIAL PRIMARY KEY, challenges INT[])")
+            cur.execute("CREATE TABLE IF NOT EXISTS sp2globalchallenges (id SERIAL PRIMARY KEY, challenges INT)")
             conn.commit()
 
 def ensure_team_db():
@@ -296,6 +296,43 @@ def get_end_time():
             cur.execute("SELECT end_time FROM sp2game WHERE game_id = 1")
             value = cur.fetchone()
             return value[0] if value is not None else None
+
+def set_main_die_modifier(team, modifier):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Set the main die modifier
+            cur.execute("UPDATE sp2teams SET main_die_modifier = %s WHERE team = %s", (modifier, team))
+            conn.commit()
+
+def set_extra_dice(team, sides):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Set the extra dice sides
+            cur.execute("UPDATE sp2teams SET extra_dice_sides = %s WHERE team = %s", (sides, team))
+            conn.commit()
+
+def get_coins_gained_this_tile(team):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the coins gained this tile from the table
+            cur.execute("SELECT coins_gained_this_tile FROM sp2teams WHERE team = %s", (team, ))
+            value = cur.fetchone()
+            return value[0] if value is not None else 0
+
+def get_global_challenges():
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Get the global challenges from the table
+            cur.execute("SELECT challenges FROM sp2globalchallenges WHERE id = 1")
+            value = cur.fetchone()
+            return value[0] if value is not None else []
+
+def set_global_challenge(challenge):
+    with dbpool.connection() as conn:
+        with conn.cursor() as cur:
+            # Set the global challenge
+            cur.execute("UPDATE sp2game SET global_challenge = %s WHERE game_id = 1", (challenge, ))
+            conn.commit()
 
 # def ensure_tile_db():
 #     with dbpool.connection() as conn:

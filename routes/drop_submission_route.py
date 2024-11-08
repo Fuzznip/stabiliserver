@@ -423,6 +423,18 @@ def parse_chat(data) -> dict[str, list[str]]:
             return "zalcano"
         elif "araxxor" in item:
             return "araxxor"
+        elif "thermonuclear smoke devil" in item:
+            return "thermonuclear smoke devil"
+        elif "grotesque guardians" in item:
+            return "grotesque guardians"
+        elif "kraken" in item:
+            return "kraken"
+        elif "cerberus" in item:
+            return "cerberus"
+        elif "abyssal sire" in item:
+            return "abyssal sire"
+        elif "nex" in item:
+            return "nex"
         else:
             return "Not Implemented"
 

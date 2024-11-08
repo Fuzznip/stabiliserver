@@ -330,7 +330,7 @@ def get_global_challenges():
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
             # Get the global challenges from the table
-            cur.execute("SELECT challenges FROM sp2globalchallenges WHERE id = 1")
+            cur.execute("SELECT challenges FROM sp2globalchallenges")
             value = cur.fetchone()
             return value[0] if value is not None else []
 

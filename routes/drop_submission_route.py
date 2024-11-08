@@ -419,6 +419,10 @@ def parse_chat(data) -> dict[str, list[str]]:
             return "alchemical hydra"
         elif "colossal wyrm" in item:
             return "colossal wyrm"
+        elif "zalcano" in item:
+            return "zalcano"
+        elif "araxxor" in item:
+            return "araxxor"
         else:
             return "Not Implemented"
 

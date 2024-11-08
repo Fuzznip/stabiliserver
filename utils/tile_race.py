@@ -411,7 +411,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
 
     firstRefresh = False
     trigger = item.lower()
-    # Check to see if it matches regex: sword quality: ([0-9]+).*
+    # Check to see if it matches regex
     match = re.match("sword quality: ([0-9]+).*", trigger)
     if match:
         trigger = "sword quality"
@@ -419,7 +419,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
 
     if trigger not in triggerList:
         print(f"Trigger {trigger} not found in trigger list")
-            return None
+        return None
 
     print(f"Trigger {trigger} found in trigger list")
 

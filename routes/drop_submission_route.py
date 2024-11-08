@@ -413,7 +413,7 @@ def parse_chat(data) -> dict[str, list[str]]:
             return "wintertodt"
         elif "tempoross" in item:
             return "tempoross"
-        elif "guardians of the rift" in item:
+        elif "rifts you have closed" in item:
             return "guardians of the rift"
         elif "alchemical hydra" in item:
             return "alchemical hydra"

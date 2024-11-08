@@ -390,7 +390,6 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
 
     # # Check if the user is in the user list cache
     if rsn.lower() not in tileRaceUserList:
-        print(f"User {rsn} not found in user list")
         return None
 
     # Parse the submission to see if it is an item drop or kc trigger

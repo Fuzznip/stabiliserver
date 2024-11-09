@@ -18,7 +18,7 @@ def handle_request():
 
     print(data)
 
-    output = submit(data["user"], format(data["discordId"], '.0f'), data["source"], data["item"], 0, 0, "MANUAL")
+    output = submit(data["user"], format(data["discordId"], '.0f'), data["source"], data["item"], 0, 1, "MANUAL")
     screenshotItems = {}
     if output is not None:
         threadIds = output["threadList"]

@@ -327,8 +327,8 @@ def progress_quest(challenge, team, trigger, source, quantity, challenge_type):
 
     return None
 
-def progress_team(team, trigger, source, quantity = 1):
-    print(f"Progressing {team} with trigger {trigger} from {source} with quantity {quantity}")
+def progress_team(team, trigger, source, quantity = 1, rsn = ""):
+    print(f"Progressing {team} ({rsn}) with trigger {trigger} from {source} with quantity {quantity}")
     # Grab the current quests from the team.
     tile = db.get_team_tile(team)
     # print(f"Tile: {tile}")
@@ -439,7 +439,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
 
     # Process the trigger for the team
     # print(team, trigger, source, quantity)
-    progression = progress_team(team, trigger, source, quantity)
+    progression = progress_team(team, trigger, source, quantity,rsn)
 
     # Check to see if the team has completed a quest or not
     if progression is not None:

@@ -166,7 +166,7 @@ def get_progress(team, challenge, task):
     return progress[str(challenge)][str(task)] if str(challenge) in progress and str(task) in progress[str(challenge)] else 0
 
 def roll_new_global_challenge():
-    globalChallenges = db.get_global_challenges()
+    globalChallenges = [66, 67, 68, 62, 64, 72, 73, 74]
     currentGlobalChallenge = db.get_global_challenge()
     while currentGlobalChallenge == db.get_global_challenge():
         currentGlobalChallenge = globalChallenges[random.randint(0, len(globalChallenges) - 1)]
@@ -207,7 +207,7 @@ def complete_challenge(team, challenge_type):
 
         db.save_progress(team, progress)
 
-        # roll_new_global_challenge()
+        roll_new_global_challenge()
 
         db.complete_challenge(team, coins = 80, die = 12) # 80 coins and 12 sided die
         db.set_main_die_modifier(team, 0)

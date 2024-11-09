@@ -329,7 +329,7 @@ def get_coins_gained_this_tile(team):
 def get_global_challenges():
     with dbpool.connection() as conn:
         with conn.cursor() as cur:
-            # Get the global challenges from the table
+            # Get the global challenges from the table as an array
             cur.execute("SELECT challenges FROM sp2globalchallenges")
             value = cur.fetchone()
             return value[0] if value is not None else []

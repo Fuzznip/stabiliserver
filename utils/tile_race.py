@@ -207,7 +207,7 @@ def complete_challenge(team, challenge_type):
 
         db.save_progress(team, progress)
 
-        roll_new_global_challenge()
+        # roll_new_global_challenge()
 
         db.complete_challenge(team, coins = 80, die = 12) # 80 coins and 12 sided die
         db.set_main_die_modifier(team, 0)

@@ -437,6 +437,8 @@ def parse_chat(data) -> dict[str, list[str]]:
             return "nex"
         elif "hueycoatl" in item:
             return "hueycoatl"
+        elif "lunar chest" in item:
+            return "lunar chest"
         else:
             return "Not Implemented"
 

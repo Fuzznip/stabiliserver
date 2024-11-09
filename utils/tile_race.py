@@ -431,7 +431,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
             print(f"Could not find team for user {rsn} with discordId {discordId}")
             return None
 
-    # print("player on team " + str(team))
+    print(f"Team {db.get_team_name(team)} found for user {rsn} with discordId {discordId}")
 
     if db.is_team_ready(team) or db.is_team_rolling(team):
         # print(f"Team {db.get_team_name(team)} is rolling")
@@ -439,7 +439,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
 
     # Process the trigger for the team
     # print(team, trigger, source, quantity)
-    progression = progress_team(team, trigger, source, quantity,rsn)
+    progression = progress_team(team, trigger, source, quantity, rsn)
 
     # Check to see if the team has completed a quest or not
     if progression is not None:

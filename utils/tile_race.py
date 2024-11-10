@@ -430,8 +430,11 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         if team is None:
             print(f"Could not find team for user {rsn} with discordId {discordId}")
             return None
+        else:
+            print(f"Team {db.get_team_name(team)} found for user {rsn} with discordId {discordId} using username")
+    else:
+        print(f"Team {db.get_team_name(team)} found for user {rsn} with discordId {discordId}")
 
-    print(f"Team {db.get_team_name(team)} found for user {rsn} with discordId {discordId}")
 
     if db.is_team_ready(team) or db.is_team_rolling(team):
         # print(f"Team {db.get_team_name(team)} is rolling")

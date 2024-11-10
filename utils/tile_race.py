@@ -424,7 +424,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     # Update the progress of the team based on the submission
     # Grab the team from the user
     team = db.get_team(discordId)
-    if team is None:
+    if team == 0:
         # Try again with username if discordId is not found
         team = db.get_team_with_username(rsn)
         if team is None:

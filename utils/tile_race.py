@@ -166,7 +166,7 @@ def get_progress(team, challenge, task):
     return progress[str(challenge)][str(task)] if str(challenge) in progress and str(task) in progress[str(challenge)] else 0
 
 def roll_new_global_challenge():
-    globalChallenges = [66, 76, 64, 72, 73, 74]
+    globalChallenges = [73, 74, 77, 78, 79, 80, 82, 84, 85, 86, 88, 89, 90, 91, 92]
     currentGlobalChallenge = db.get_global_challenge()
     while currentGlobalChallenge == db.get_global_challenge():
         currentGlobalChallenge = globalChallenges[random.randint(0, len(globalChallenges) - 1)]
@@ -427,7 +427,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     if team == 0:
         # Try again with username if discordId is not found
         team = db.get_team_with_username(rsn)
-        if team is None:
+        if team == 0:
             print(f"Could not find team for user {rsn} with discordId {discordId}")
             return None
         else:

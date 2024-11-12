@@ -426,7 +426,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     team = db.get_team(discordId)
     if team == 0:
         # Try again with username if discordId is not found
-        team = db.get_team_with_username(rsn)
+        team = db.get_team_with_username(rsn.lower())
         if team == 0:
             print(f"Could not find team for user {rsn} with discordId {discordId}")
             return None

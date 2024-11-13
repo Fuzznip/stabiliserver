@@ -442,7 +442,7 @@ def parse_chat(data) -> dict[str, list[str]]:
         else:
             return "Not Implemented"
 
-    if data['playerName'].lower() == "indy 500":
+    if data['playerName'].lower() == "indy 500" or data['playerName'].lower() == "gano gary":
         print(data)
 
     kcString = check_string_for_kc(data['extra']['message'].lower())

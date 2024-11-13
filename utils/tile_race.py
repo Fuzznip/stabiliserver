@@ -166,7 +166,7 @@ def get_progress(team, challenge, task):
     return progress[str(challenge)][str(task)] if str(challenge) in progress and str(task) in progress[str(challenge)] else 0
 
 def roll_new_global_challenge():
-    globalChallenges = [89]
+    globalChallenges = [66]
     currentGlobalChallenge = db.get_global_challenge()
     while currentGlobalChallenge == db.get_global_challenge():
         currentGlobalChallenge = globalChallenges[random.randint(0, len(globalChallenges) - 1)]

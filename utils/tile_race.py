@@ -390,6 +390,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
 
     # # Check if the user is in the user list cache
     if rsn.lower() not in tileRaceUserList:
+        print(tileRaceUserList)
         return None
 
     # Parse the submission to see if it is an item drop or kc trigger
@@ -417,6 +418,8 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         quantity = int(match.group(1))
 
     if trigger not in triggerList:
+        print(triggerList)
+        print(trigger)
         return None
 
     print(f"Trigger {trigger} found in trigger list")

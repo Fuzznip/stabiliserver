@@ -350,7 +350,6 @@ def parse_leagues_task(data) -> dict[str, list[str]]:
     return False
 
 def parse_chat(data) -> dict[str, list[str]]:
-    print(data)
     screenshotItems: dict[str, list[str]] = {}
     # Check if discordUser exists
     if 'discordUser' not in data:

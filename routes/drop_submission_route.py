@@ -350,6 +350,7 @@ def parse_leagues_task(data) -> dict[str, list[str]]:
     return False
 
 def parse_chat(data) -> dict[str, list[str]]:
+    print(data)
     screenshotItems: dict[str, list[str]] = {}
     # Check if discordUser exists
     if 'discordUser' not in data:
@@ -441,9 +442,6 @@ def parse_chat(data) -> dict[str, list[str]]:
             return "lunar chest"
         else:
             return "Not Implemented"
-
-    if data['playerName'].lower() == "indy 500" or data['playerName'].lower() == "gano gary":
-        print(data)
 
     kcString = check_string_for_kc(data['extra']['message'].lower())
     if kcString != "Not Implemented":

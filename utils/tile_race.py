@@ -366,7 +366,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
     end_time = db.get_end_time()
     # print(current_time, start_time, end_time)
     if current_time < start_time or current_time > end_time:
-        print(f"Submission from {rsn} is outside of the start and end time")
+        # print(f"Submission from {rsn} is outside of the start and end time")
         return
 
     # Check if the user list cache needs to be refreshed
@@ -403,7 +403,7 @@ def parse_tile_race_submission(type, rsn, discordId, source, item, price, quanti
         # Refresh the cache
         triggerList = db.get_tile_race_full_trigger_list()
         triggerList = [x.lower() for x in triggerList]
-        # print(f"Trigger list: {triggerList}")
+        print(f"Trigger list: {triggerList}")
 
         lastTriggerListRefresh = datetime.now()
     # Check if the trigger is in the trigger list cache

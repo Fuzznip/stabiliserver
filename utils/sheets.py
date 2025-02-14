@@ -127,10 +127,10 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType):
     output = {
         "threadList": [],
     }
-    result = tile_race.parse_tile_race_submission(submitType, rsn, discordId, source, item, itemPrice, itemQuantity)
-    if result is not None:
-        output["threadList"].append(result["thread_id"])
-        output["message"] = result["message"]
+    # result = tile_race.parse_tile_race_submission(submitType, rsn, discordId, source, item, itemPrice, itemQuantity)
+    # if result is not None:
+    #     output["threadList"].append(result["thread_id"])
+    #     output["message"] = result["message"]
 
     refresh_cache()
     # Create a query for the item and source

@@ -34,9 +34,10 @@ client = gspread.authorize(creds)
 doc = client.open("Clan Data")
 # List all of the files in data/
 
-for root, dirs, files in os.walk(os.path.abspath("/app/data/")):
+for root, dirs, files in os.walk("/app/data/"):
     for file in files:
-        print(f"{file} is in data/")
+        # print absolute path
+        print(f"{root}/{file}")
 
 firebase_credentials = credentials.Certificate(os.path.abspath(os.environ.get("FIREBASE_CREDENTIALS")))
 firebase_admin.initialize_app(firebase_credentials)

@@ -33,7 +33,7 @@ client = gspread.authorize(creds)
 # Make sure you use the right name here.
 doc = client.open("Clan Data")
 
-firebase_credentials = credentials.Certificate(os.environ.get("FIREBASE_CREDENTIALS"))
+firebase_credentials = credentials.Certificate(os.path.abspath(os.environ.get("FIREBASE_CREDENTIALS")))
 firebase_admin.initialize_app(firebase_credentials)
 db = firestore.client()
 

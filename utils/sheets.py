@@ -1,5 +1,7 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import firebase_admin
+from firebase_admin import credentials, firestore
 from datetime import datetime
 import time
 from dotenv import load_dotenv
@@ -30,6 +32,10 @@ client = gspread.authorize(creds)
 # Find a workbook by name and open the first sheet
 # Make sure you use the right name here.
 doc = client.open("Clan Data")
+
+firebase_credentials = credentials.Certificate(os.environ.get("FIREBASE_CREDENTIALS"))
+firebase_admin.initialize_app(firebase_credentials)
+db = firestore.client()
 
 # lastRefresh is the last time the cache was refreshed, initialize to epoch
 lastRefresh = datetime.utcfromtimestamp(0)
@@ -121,6 +127,20 @@ def refresh_cache(force = False):
 def write(player: str, discordId: str, itemSource: str, itemName: str, itemValue: int, itemQuantity: int, submitType: str) -> None:
     data = [ datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), player, discordId, itemSource, itemName, itemValue, itemQuantity, itemValue * itemQuantity, submitType ]
     writeSheet.append_row(data)
+
+    data = {
+        "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        "player": player,
+        "discordId": discordId,
+        "itemSource": itemSource,
+        "itemName": itemName,
+        "itemValue": itemValue,
+        "itemQuantity": itemQuantity,
+        "totalValue": itemValue * itemQuantity,
+        "submitType": submitType
+    }
+
+    db.collection("drops").add(data)
 
 # Return value in the form of a list of tuples of item names to their lists of output ids
 def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType):

@@ -2,6 +2,7 @@ backports.statistics==0.1.0
 Cython==3.0.10
 dl==0.1.0
 docutils==0.21.2
+firebase-admin==6.6.0
 Flask==3.0.3
 Flask_Cors==4.0.0
 gspread==6.1.0

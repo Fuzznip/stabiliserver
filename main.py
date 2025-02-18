@@ -28,12 +28,6 @@ app.register_blueprint(reload_cache, url_prefix = '/reload_cache')
 app.register_blueprint(drop_submission_route, url_prefix = '/stability')
 app.register_blueprint(bot_submission_route, url_prefix = '/stabilibot')
 
-# List all of the files in data/
-
-for root, dirs, files in os.walk("data/"):
-    for file in files:
-        print(f"{file} is in data/")
-
 if __name__ == '__main__':
     from waitress import serve
     print("Starting server...")

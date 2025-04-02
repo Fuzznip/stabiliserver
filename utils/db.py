@@ -8,7 +8,7 @@ import os
 
 import json
 
-dbpool = ConnectionPool(conninfo = os.getenv("DATABASE_URL"))
+# dbpool = ConnectionPool(conninfo = os.getenv("DATABASE_URL"))
 
 def ensure_task_db():
     with dbpool.connection() as conn:

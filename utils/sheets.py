@@ -32,16 +32,10 @@ client = gspread.authorize(creds)
 # Find a workbook by name and open the first sheet
 # Make sure you use the right name here.
 doc = client.open("Clan Data")
-# List all of the files in data/
 
-for root, dirs, files in os.walk("/app/data/"):
-    for file in files:
-        # print absolute path
-        print(f"{root}/{file}")
-
-firebase_credentials = credentials.Certificate(os.path.abspath(os.environ.get("FIREBASE_CREDENTIALS")))
-firebase_admin.initialize_app(firebase_credentials)
-db = firestore.client()
+# firebase_credentials = credentials.Certificate(os.path.abspath(os.environ.get("FIREBASE_CREDENTIALS")))
+# firebase_admin.initialize_app(firebase_credentials)
+# db = firestore.client()
 
 # lastRefresh is the last time the cache was refreshed, initialize to epoch
 lastRefresh = datetime.utcfromtimestamp(0)
@@ -146,7 +140,7 @@ def write(player: str, discordId: str, itemSource: str, itemName: str, itemValue
         "submitType": submitType
     }
 
-    db.collection("drops").add(data)
+    #db.collection("drops").add(data)
 
 # Return value in the form of a list of tuples of item names to their lists of output ids
 def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType):

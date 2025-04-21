@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, TypeAdapter
 import json
 import uuid
+import logging
 from dotenv import load_dotenv
 from models.notification_models import *
 from utils.request_handlers.loot_handler import parse_loot
@@ -70,50 +71,69 @@ def parse_json_data(json_data: str) -> dict[str, list[str]]:
     if type == 'DEATH':
         return parse_death(submission)
     elif type == 'COLLECTION':
+        submission.extra = TypeAdapter(CollectionExtra).validate_python(submission.extra)
         return parse_collection(submission)
     elif type == 'LEVEL':
+        submission.extra = TypeAdapter(LevelExtra).validate_python(submission.extra)
         return parse_level(submission)
     elif type == 'LOOT':
         submission.extra = TypeAdapter(LootExtra).validate_python(submission.extra)
         return parse_loot(submission)
     elif type == 'SLAYER':
+        submission.extra = TypeAdapter(SlayerExtra).validate_python(submission.extra)
         return parse_slayer(submission)
     elif type == 'QUEST':
+        submission.extra = TypeAdapter(QuestExtra).validate_python(submission.extra)
         return parse_quest(submission)
     elif type == 'CLUE':
+        submission.extra = TypeAdapter(ClueExtra).validate_python(submission.extra)
         return parse_clue(submission)
     elif type == 'KILL_COUNT':
+        submission.extra = TypeAdapter(KillCountExtra).validate_python(submission.extra)
         return parse_kill_count(submission)
     elif type == 'COMBAT_ACHIEVEMENT':
+        submission.extra = TypeAdapter(CombatAchievementExtra).validate_python(submission.extra)
         return parse_combat_achievement(submission)
     elif type == 'PET':
+        submission.extra = TypeAdapter(PetExtra).validate_python(submission.extra)
         return parse_pet(submission)
     elif type == 'SPEEDRUN':
+        submission.extra = TypeAdapter(SpeedrunExtra).validate_python(submission.extra)
         return parse_speedrun(submission)
     elif type == 'BARBARIAN_ASSAULT_GAMBLE':
+        submission.extra = TypeAdapter(BAGambleExtra).validate_python(submission.extra)
         return parse_barbarian_assault_gamble(submission)
     elif type == 'PLAYER_KILL':
+        submission.extra = TypeAdapter(PlayerKillExtra).validate_python(submission.extra)
         return parse_player_kill(submission)
     elif type == 'GROUP_STORAGE':
+        submission.extra = TypeAdapter(GroupStorageExtra).validate_python(submission.extra)
         return parse_group_storage(submission)
     elif type == 'GRAND_EXCHANGE':
+        submission.extra = TypeAdapter(GrandExchangeExtra).validate_python(submission.extra)
         return parse_grand_exchange(submission)
     elif type == 'TRADE':
+        submission.extra = TypeAdapter(PlayerTradeExtra).validate_python(submission.extra)
         return parse_trade(submission)
     elif type == 'LEAGUES_AREA':
+        submission.extra = TypeAdapter(LeaguesAreaExtra).validate_python(submission.extra)
         return parse_leagues_area(submission)
     elif type == 'LEAGUES_RELIC':
+        submission.extra = TypeAdapter(LeaguesRelicExtra).validate_python(submission.extra)
         return parse_leagues_relic(submission)
     elif type == 'LEAGUES_TASK':
+        submission.extra = TypeAdapter(LeaguesTaskExtra).validate_python(submission.extra)
         return parse_leagues_task(submission)
     elif type == 'CHAT':
+        submission.extra = TypeAdapter(ChatExtra).validate_python(submission.extra)
         return parse_chat(submission)
     elif type == 'LOGIN':
+        submission.extra = TypeAdapter(ExternalPluginExtra).validate_python(submission.extra)
         return parse_login(submission)
     else:
         print(f"Unknown type: {type}")
 
-    return []
+    return {}
 
 async def parse_request(payload_json: str, file: UploadFile):
     # generate an id for this request
@@ -123,12 +143,11 @@ async def parse_request(payload_json: str, file: UploadFile):
     if payload_json:
         try:
             result = parse_json_data(payload_json)
+            if result:
+                image_required = True
         except Exception as e:
-            print("Error parsing JSON data: " + str(e))
-            print(json.dumps(payload_json, indent=2))
-            raise HTTPException(status_code=400, detail=f"Error parsing JSON data: {str(e)}")
-        if result:
-            image_required = True
+            logging.error("Error parsing request: " + id)
+            logging.error(json.dumps(payload_json, indent=2))
 
     if file and image_required:
         # Reset file pointer and save the image to memory

@@ -63,4 +63,4 @@ def handle_request():
     
     if screenshotItems:
         return jsonify({ "message": "Submission successfully recorded! An image was posted detailing the successful progression of the drop." }), 200
-    return jsonify({ "message": "Submission successfully recorded!" }), 200
+    return jsonify({ "message": "Submission successfully recorded! No Image was sent but we received your drop!" }), 200

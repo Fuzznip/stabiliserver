@@ -5,7 +5,6 @@ import json
 import uuid
 import logging
 from dotenv import load_dotenv
-from models.notification_models import *
 from utils.request_handlers.loot_handler import parse_loot
 from utils.request_handlers.death_handler import parse_death
 from utils.request_handlers.collection_handler import parse_collection
@@ -27,25 +26,12 @@ from utils.request_handlers.leagues_relic_handler import parse_leagues_relic
 from utils.request_handlers.leagues_task_handler import parse_leagues_task
 from utils.request_handlers.chat_handler import parse_chat
 from utils.request_handlers.login_handler import parse_login
+from models.submission import Submission
+from models.notification_models import *
 
 load_dotenv()
 
 app = FastAPI()
-
-class Submission(BaseModel):
-    type: str
-    playerName: str
-    accountType: str
-    dinkAccountHash: str
-    clanName: str | None = None
-    groupIronClanName: str | None = None
-    seasonalWorld: bool
-    world: int | None = None
-    regionId: int | None = None
-    extra: DeathExtra | CollectionExtra | LevelExtra | XPMilestoneExtra | LootExtra | SlayerExtra | QuestExtra | ClueExtra | KillCountExtra | CombatAchievementExtra | AchievementDiaryExtra | PetExtra | SpeedrunExtra | BAGambleExtra | PlayerKillExtra | GroupStorageExtra | GrandExchangeExtra | PlayerTradeExtra | LeaguesAreaExtra | LeaguesMasteryExtra | LeaguesRelicExtra | LeaguesTaskExtra | ChatExtra | ExternalPluginExtra | MetadataExtra
-    discordUser: dict | None = None
-    content: str
-    embeds: list
 
 # Enable CORS
 app.add_middleware(
@@ -61,6 +47,7 @@ def parse_json_data(json_data: str) -> dict[str, list[str]]:
     data = json.loads(json_data)
     # populate the data as a Submission object
     submission = Submission(**data)
+    print(submission)
 
     # types are: 'DEATH', 'COLLECTION, 'LEVEL', 'LOOT', 'SLAYER', 'QUEST', 
     # 'CLUE', 'KILL_COUNT', 'COMBAT_ACHIEVEMENT', 'PET', 'SPEEDRUN', 'BARBARIAN_ASSAULT_GAMBLE', 
@@ -135,11 +122,13 @@ def parse_json_data(json_data: str) -> dict[str, list[str]]:
 
     return {}
 
-async def parse_request(payload_json: str, file: UploadFile):
+async def parse_request(payload_json: str, file: File):
     # generate an id for this request
     id = str(uuid.uuid4())
     print("Request received: " + id)
     image_required = False
+    file_content = file  # Store file content in memory
+
     if payload_json:
         try:
             result = parse_json_data(payload_json)
@@ -149,11 +138,10 @@ async def parse_request(payload_json: str, file: UploadFile):
             logging.error("Error parsing request: " + id)
             logging.error(json.dumps(payload_json, indent=2))
 
-    if file and image_required:
-        # Reset file pointer and save the image to memory
-        file.file.seek(0)
+    if file_content and image_required:
+        # Save the image to memory
         with open("lootImage.png", "wb") as f:
-            f.write(await file.read())
+            f.write(file_content)
     
     print("Request parsed successfully: " + id)
 
@@ -163,6 +151,7 @@ async def handle_request(
     payload_json: str = Form(None),
     file: UploadFile = File(None)
 ):
-    background_tasks.add_task(parse_request, payload_json, file)
+    file_content = await file.read() if file else None  # Read file content if provided
+    background_tasks.add_task(parse_request, payload_json, file_content)
 
     return {}

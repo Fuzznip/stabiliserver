@@ -1,6 +1,6 @@
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException, BackgroundTasks
+from fastapi import FastAPI, File, Form, UploadFile, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, TypeAdapter
+from pydantic import TypeAdapter
 import json
 import uuid
 import logging

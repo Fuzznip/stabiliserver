@@ -31,11 +31,11 @@ class CollectionExtra(BaseModel):
     price: int
     completedEntries: int
     totalEntries: int
-    currentRank: str | None = None
-    rankProgress: int | None = None
-    logsNeededForNextRank: int | None = None
-    nextRank: str | None = None
-    justCompletedRank: str | None = None
+    currentRank: str
+    rankProgress: int
+    logsNeededForNextRank: int
+    nextRank: str
+    justCompletedRank: str
     dropperName: str | None = None
     dropperType: str | None = None
     dropperKillCount: int | None = None

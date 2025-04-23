@@ -1,23 +1,23 @@
-from flask import Flask
-from flask_cors import CORS
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from routes.dink_submission import router as stability_router
+from routes.dink import router as dink_router
+from routes.reload_drop_dictionary import router as drop_router
+
 load_dotenv()
-import os
 
-from routes.reload_cache import reload_cache
-from routes.drop_submission_route import drop_submission_route
-from routes.bot_submission_route import bot_submission_route
+app = FastAPI()
 
-app = Flask(__name__)
-CORS(app)
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-app.register_blueprint(reload_cache, url_prefix = '/reload_cache')
-app.register_blueprint(drop_submission_route, url_prefix = '/stability')
-app.register_blueprint(bot_submission_route, url_prefix = '/stabilibot')
-
-if __name__ == '__main__':
-    from waitress import serve
-    print("Starting server...")
-    port = os.environ.get('PORT', 8080)
-    host = os.environ.get('HOST', "0.0.0.0")
-    serve(app, host = host, port = port)
+app.include_router(stability_router)
+app.include_router(dink_router)
+app.include_router(drop_router)

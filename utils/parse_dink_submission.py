@@ -1,14 +1,13 @@
-from fastapi import FastAPI, File, Form, UploadFile, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import TypeAdapter
 import json
 import uuid
 import logging
-from dotenv import load_dotenv
-from utils.request_handlers.loot_handler import parse_loot
+from pydantic import TypeAdapter
+from models.submission import Submission
+from models.notification_models import *
 from utils.request_handlers.death_handler import parse_death
 from utils.request_handlers.collection_handler import parse_collection
 from utils.request_handlers.level_handler import parse_level
+from utils.request_handlers.loot_handler import parse_loot
 from utils.request_handlers.slayer_handler import parse_slayer
 from utils.request_handlers.quest_handler import parse_quest
 from utils.request_handlers.clue_handler import parse_clue
@@ -26,33 +25,11 @@ from utils.request_handlers.leagues_relic_handler import parse_leagues_relic
 from utils.request_handlers.leagues_task_handler import parse_leagues_task
 from utils.request_handlers.chat_handler import parse_chat
 from utils.request_handlers.login_handler import parse_login
-from models.submission import Submission
-from models.notification_models import *
 
-load_dotenv()
-
-app = FastAPI()
-
-# Enable CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# function to delegate parsing to its own function basing on the 'type' data
 def parse_json_data(json_data: str) -> dict[str, list[str]]:
     data = json.loads(json_data)
-    # populate the data as a Submission object
     submission = Submission(**data)
     print(submission)
-
-    # types are: 'DEATH', 'COLLECTION, 'LEVEL', 'LOOT', 'SLAYER', 'QUEST', 
-    # 'CLUE', 'KILL_COUNT', 'COMBAT_ACHIEVEMENT', 'PET', 'SPEEDRUN', 'BARBARIAN_ASSAULT_GAMBLE', 
-    # 'PLAYER_KILL', 'GROUP_STORAGE', 'GRAND_EXCHANGE', 'TRADE', 'LEAGUES_AREA', 'LEAGUES_RELIC',
-    # 'LEAGUES_TASK', and 'LOGIN'
 
     type = submission.type
     if type == 'DEATH':
@@ -122,36 +99,22 @@ def parse_json_data(json_data: str) -> dict[str, list[str]]:
 
     return {}
 
-async def parse_request(payload_json: str, file: File):
+async def parse_dink_request(payload_json: str, file: bytes) -> None:
     # generate an id for this request
-    id = str(uuid.uuid4())
-    print("Request received: " + id)
+    id = uuid.uuid4()
+    print(f"Request received: {str(id)}")
     image_required = False
     file_content = file  # Store file content in memory
-
     if payload_json:
         try:
             result = parse_json_data(payload_json)
             if result:
                 image_required = True
         except Exception as e:
-            logging.error("Error parsing request: " + id)
+            logging.error(f"Error parsing request ({str(id)}): {e}")
             logging.error(json.dumps(payload_json, indent=2))
-
     if file_content and image_required:
         # Save the image to memory
         with open("lootImage.png", "wb") as f:
             f.write(file_content)
-    
-    print("Request parsed successfully: " + id)
-
-@app.post("/stability")
-async def handle_request(
-    background_tasks: BackgroundTasks,
-    payload_json: str = Form(None),
-    file: UploadFile = File(None)
-):
-    file_content = await file.read() if file else None  # Read file content if provided
-    background_tasks.add_task(parse_request, payload_json, file_content)
-
-    return {}
+    print(f"Request parsed successfully: {str(id)}")

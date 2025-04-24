@@ -19,8 +19,9 @@ class DiscordEmbedField:
     inline: bool = False
 
 class DiscordEmbedData:
-    def __init__(self, title: str, thumbnailImage: str | None = None, author: DiscordEmbedAuthor | None = None, description: str | None = None, fields: list[DiscordEmbedField] | None = None) -> None:
+    def __init__(self, title: str, color: int, thumbnailImage: str | None = None, author: DiscordEmbedAuthor | None = None, description: str | None = None, fields: list[DiscordEmbedField] | None = None) -> None:
         self.title = title
+        self.color = color
         self.thumbnailImage = thumbnailImage
         self.author = author
         self.description = description

@@ -27,57 +27,6 @@ def write(player: str, discordId: str, trigger: str, source: str, quantity: str,
         return ([], None)
     
     jsonData = response.json()
-    # Should be in the form of:
-    # {
-    #     "notifications": [
-    #         {
-    #             "threadId": "1234567890123456789",
-    #             "title": "Title",
-    #             "thumbnailImage": "https://i.imgur.com/4LdSYto.jpeg",
-    #             "author": {
-    #                 "name": "ToA Suckers",
-    #                 "icon_url": "https://i.imgur.com/4LdSYto.jpeg",
-    #                 "url": "https://i.imgur.com/4LdSYto.jpeg"
-    #             },
-    #             "description": "Description",
-    #             "fields": [
-    #                 {
-    #                     "name": "Field 1",
-    #                     "value": "Value 1",
-    #                     "inline": True
-    #                 },
-    #                 {
-    #                     "name": "Field 2",
-    #                     "value": "Value 2",
-    #                     "inline": True
-    #                 }
-    #             ]
-    #         },
-    #         {
-    #             "threadId": "1234567890123456790", 
-    #             "title": "Title",
-    #             "thumbnailImage": "https://i.imgur.com/4LdSYto.jpeg",
-    #             "author": {
-    #                 "name": "ToA Suckers",
-    #                 "icon_url": "https://i.imgur.com/4LdSYto.jpeg",
-    #                 "url": "https://i.imgur.com/4LdSYto.jpeg"
-    #             }, 
-    #             "description": "Description",
-    #             "fields": [
-    #                 {
-    #                     "name": "Field 1",
-    #                     "value": "Value 1",
-    #                     "inline": True
-    #                 },
-    #                 {
-    #                     "name": "Field 2",
-    #                     "value": "Value 2",
-    #                     "inline": True
-    #                 }
-    #             ]
-    #         }
-    #     ]
-    # }
     returnList: list[tuple[str, DiscordEmbedData]] = []
     for notification in jsonData["notifications"]:
         embedData = DiscordEmbedData(
@@ -141,4 +90,4 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType) ->
             type=submitType
         )
 
-    return None
+    return []

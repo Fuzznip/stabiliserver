@@ -106,7 +106,7 @@ async def parse_dink_request(payload_json: str, file: bytes) -> None:
     if payload_json:
         try:
             notifications: list[tuple[str, DiscordEmbedData]] = parse_json_data(payload_json)
-            logging.info(notifications)
+            logging.debug(notifications)
             if notifications:
                 for thread_id, notification in notifications:  # Ensure result is a list of tuples
                     webhook_url = os.getenv("WEBHOOK_URL")

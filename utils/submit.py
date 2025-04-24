@@ -56,9 +56,9 @@ def write(player: str, discordId: str, trigger: str, source: str, quantity: str,
 def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType) -> list[tuple[str, DiscordEmbedData]]:
     whitelistData = get_whitelist_data()
     # Print out the contents of the drop dictionary for debugging
-    print("Drop Dictionary:")
+    logging.debug("Drop Dictionary:")
     for key, value in whitelistData.triggerDictionary.items():
-        print(f"Key: {key}, Value: {value}")
+        logging.debug(f"Key: {key}, Value: {value}")
         
     # Create a query for the item and source
     query = (item.lower(), source.lower())

@@ -31,6 +31,7 @@ async def handle_request():
         "slayerNotifMessage": "",
         "levelInterval": 1,
         "notifyTrades": False,
+        "chatPrivacy": "HIDE_SPLIT_PM",
         "speedrunMessage": "",
         "sendDiscordUser": True,
         "clueSendImage": True,

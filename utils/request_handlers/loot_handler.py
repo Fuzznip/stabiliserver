@@ -3,7 +3,7 @@ from ..submit import submit
 from .parse_response import DiscordEmbedData
 
 def parse_loot(data: Submission) -> list[tuple[str, DiscordEmbedData]]:
-    screenshotItems: list[tuple[str, DiscordEmbedData]] = []
+    notifications: list[tuple[str, DiscordEmbedData]] = []
 
     rsn = data.playerName
     discordId = data.discordUser.id if data.discordUser else "None"
@@ -16,8 +16,7 @@ def parse_loot(data: Submission) -> list[tuple[str, DiscordEmbedData]]:
         itemQuantity = item.quantity
 
         # Check if the item is in the drop dictionary
-        threadIds, embedData = submit(rsn, discordId, source, itemName, itemPrice, itemQuantity, "LOOT")
-        for threadId in threadIds:
-            screenshotItems.append((threadId, embedData))  # Ensure each tuple has exactly two values
+        for notificationData in submit(rsn, discordId, source, itemName, itemPrice, itemQuantity, "LOOT"):
+            notifications.append(notificationData)
 
-    return screenshotItems
+    return notifications

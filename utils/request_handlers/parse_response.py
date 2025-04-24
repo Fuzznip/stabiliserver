@@ -27,6 +27,7 @@ class DiscordEmbedData:
         self.fields = fields
         
     title: str
+    color: int = 0x992D22  # Default color (dark red)
     thumbnailImage: str | None = None
     author: DiscordEmbedAuthor | None = None
     description: str | None = None

@@ -105,10 +105,10 @@ async def parse_dink_request(payload_json: str, file: bytes) -> None:
     logging.debug(f"{payload_json}")
     if payload_json:
         try:
-            result = parse_json_data(payload_json)
-            logging.debug(result)
-            if result:
-                for thread_id, parse_response in result:  # Ensure result is a list of tuples
+            notifications: list[tuple[str, DiscordEmbedData]] = parse_json_data(payload_json)
+            logging.info(notifications)
+            if notifications:
+                for thread_id, notification in notifications:  # Ensure result is a list of tuples
                     webhook_url = os.getenv("WEBHOOK_URL")
                     if not webhook_url:
                         logging.error("WEBHOOK_URL environment variable is not set.")
@@ -119,29 +119,29 @@ async def parse_dink_request(payload_json: str, file: bytes) -> None:
                     
                     # Construct the embed payload
                     embed = {
-                        "title": parse_response.title,
-                        "color": 3447003,  # Example color (blue)
+                        "title": notification.title,
+                        "color": notification.color,
                     }
                     
                     # Add optional fields if they exist
-                    if parse_response.description:
-                        embed["description"] = parse_response.description
-                    if parse_response.thumbnailImage:
-                        embed["thumbnail"] = {"url": parse_response.thumbnailImage}
-                    if parse_response.author:
+                    if notification.description:
+                        embed["description"] = notification.description
+                    if notification.thumbnailImage:
+                        embed["thumbnail"] = {"url": notification.thumbnailImage}
+                    if notification.author:
                         embed["author"] = {
-                            "name": parse_response.author.name,
-                            "icon_url": parse_response.author.icon_url,
-                            "url": parse_response.author.url,
+                            "name": notification.author.name,
+                            "icon_url": notification.author.icon_url,
+                            "url": notification.author.url,
                         }
-                    if parse_response.fields:
+                    if notification.fields:
                         embed["fields"] = [
                             {
                                 "name": field.name,
                                 "value": field.value,
                                 "inline": field.inline,
                             }
-                            for field in parse_response.fields
+                            for field in notification.fields
                         ]
                     
                     # If an image is provided, include it in the embed

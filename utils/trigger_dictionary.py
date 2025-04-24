@@ -1,8 +1,8 @@
 # dropDictionary is a dictionary of pairs of items and drop sources to the list of channels they should post in
 # eg. { ("abyssal whip", "abyssal demon"): [ "1233130963870154864", "1232048319996625029", ... ] }
 class WhitelistData:
-    triggerDictionary: dict[tuple[str, str], list[str]] = {}
-    messageFilters: dict[str, list[str]] = {}
+    triggers: list[tuple[str, str]] = []
+    messageFilters: list[str] = []
 
 data = WhitelistData()
 

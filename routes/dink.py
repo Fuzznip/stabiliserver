@@ -9,12 +9,12 @@ async def handle_request():
     # Convert the drop dictionary into a list of item names
     # We can do this by looping through each item of the drop dictionary and adding the first index of the tuple to a list
     itemsList = []
-    for (drop, _) in whitelistData.triggerDictionary:
+    for (drop, _) in whitelistData.triggers:
         itemsList.append(drop)
 
     # Get the list of chat patterns as well
     chatPatterns = []
-    for (filter, _) in whitelistData.messageFilters.items():
+    for (filter, _) in whitelistData.messageFilters:
         chatPatterns.append(f"*{filter}*")
 
     return {

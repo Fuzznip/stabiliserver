@@ -57,7 +57,7 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType) ->
     whitelistData = get_whitelist_data()
     # Print out the contents of the drop dictionary for debugging
     logging.debug("Drop Dictionary:")
-    for key, value in whitelistData.triggerDictionary.items():
+    for key, value in whitelistData.triggers:
         logging.debug(f"Key: {key}, Value: {value}")
         
     # Create a query for the item and source
@@ -66,7 +66,7 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType) ->
     # TODO: Check blacklists
 
     # Check if the query is in the drop dictionary
-    if query in whitelistData.triggerDictionary:
+    if query in whitelistData.triggers:
         return write(
             player=rsn,
             discordId=discordId,
@@ -79,7 +79,7 @@ def submit(rsn, discordId, source, item, itemPrice, itemQuantity, submitType) ->
 
     # Check if the query is in the drop dictionary without a specific source
     query = (item.lower(), "")
-    if query in whitelistData.triggerDictionary:
+    if query in whitelistData.triggers:
         return write(
             player=rsn,
             discordId=discordId,

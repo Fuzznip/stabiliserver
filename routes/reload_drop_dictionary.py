@@ -8,8 +8,8 @@ from pydantic import BaseModel
 import logging
 
 class TriggerWhitelist(BaseModel):
-    triggerDictionary: dict[str, list] | None = None
-    messageFilters: dict[str, list] | None = None
+    triggers: set[str] | None = None
+    messageFilters: set[str] | None = None
 
 router = APIRouter()
 
@@ -23,22 +23,20 @@ async def populate_drop_dictionary(api_url: str):
         jsonData = data.json()
         logging.info("JSON Data: %s", jsonData)
 
-        whitelist_data = WhitelistData()
-        if "triggerDictionary" in jsonData:
-            for key, value in jsonData["triggerDictionary"].items():
-                if ":" in key:
-                    tupleKey = tuple(key.lower().split(":"))
+        whitelistData = WhitelistData()
+        if "triggers" in jsonData:
+            for value in jsonData["triggers"]:
+                if ":" in value:
+                    whitelistData.triggers.append(tuple(value.lower().split(":")))
                 else:
-                    tupleKey = (key.lower(), "")
-                whitelist_data.triggerDictionary[tupleKey] = value
+                    whitelistData.triggers.append((value.lower(), ""))
 
         if "messageFilters" in jsonData:
-            for key, value in jsonData["messageFilters"].items():
-                whitelist_data.messageFilters[key] = value
+            whitelistData.messageFilters = jsonData["messageFilters"]
 
-        set_whitelist_data(whitelist_data)
+        set_whitelist_data(whitelistData)
         logging.info("Drop dictionary populated successfully.")
-        return whitelist_data
+        return whitelistData
     except requests.RequestException as e:
         logging.error("Error populating drop dictionary: %s", e)
         return None
@@ -47,7 +45,7 @@ async def populate_drop_dictionary(api_url: str):
 async def handle(whitelistData: TriggerWhitelist):
     logging.info("Reloading drop dictionary...")
     logging.info("Whitelist Data: %s", whitelistData)
-    if whitelistData.triggerDictionary or whitelistData.messageFilters:
+    if whitelistData.triggers or whitelistData.messageFilters:
         jsonData = whitelistData.model_dump()
     else:
         jsonData = await populate_drop_dictionary(os.environ.get("API"))

@@ -31,7 +31,6 @@ from utils.request_handlers.login_handler import parse_login
 def parse_json_data(json_data: str) -> list[tuple[str, DiscordEmbedData]]:
     data = json.loads(json_data)
     submission = Submission(**data)
-    logging.info(f"Parsed submission: {submission}")
 
     type = submission.type
     if type == 'DEATH':

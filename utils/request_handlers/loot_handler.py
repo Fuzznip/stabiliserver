@@ -1,15 +1,12 @@
 from models.submission import Submission
-from models.notification_models import LootExtra
+from ..submit import submit
+from .parse_response import DiscordEmbedData
 
-def parse_loot(data: Submission) -> dict[str, list[str]]:
-    screenshotItems: dict[str, list[str]] = {}
+def parse_loot(data: Submission) -> list[tuple[str, DiscordEmbedData]]:
+    screenshotItems: list[tuple[str, DiscordEmbedData]] = []
 
     rsn = data.playerName
-    if data.discordUser is None:
-        discordId = "None"
-    else:
-        discordId = data.discordUser.id
-
+    discordId = data.discordUser.id if data.discordUser else "None"
     source = data.extra.source
     items = data.extra.items
 
@@ -17,19 +14,10 @@ def parse_loot(data: Submission) -> dict[str, list[str]]:
         itemName = item.name
         itemPrice = item.priceEach
         itemQuantity = item.quantity
-        itemTotal = itemPrice * itemQuantity
 
         # Check if the item is in the drop dictionary
-        output = submit(rsn, discordId, source, itemName, itemPrice, itemQuantity, "LOOT")
-        if output is not None:
-            threadIds = output["threadList"]
-            for threadId in threadIds:
-                if threadId not in screenshotItems:
-                    screenshotItems[threadId] = []
-
-                if "message" in output:
-                    screenshotItems[threadId].append(output["message"])
-                else:
-                    screenshotItems[threadId].append(itemName)
+        threadIds, embedData = submit(rsn, discordId, source, itemName, itemPrice, itemQuantity, "LOOT")
+        for threadId in threadIds:
+            screenshotItems.append((threadId, embedData))  # Ensure each tuple has exactly two values
 
     return screenshotItems

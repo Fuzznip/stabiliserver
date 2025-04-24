@@ -1,9 +1,11 @@
 import json
-import uuid
 import logging
+import os
+import requests
 from pydantic import TypeAdapter
 from models.submission import Submission
 from models.notification_models import *
+from utils.request_handlers.parse_response import DiscordEmbedData
 from utils.request_handlers.death_handler import parse_death
 from utils.request_handlers.collection_handler import parse_collection
 from utils.request_handlers.level_handler import parse_level
@@ -26,10 +28,10 @@ from utils.request_handlers.leagues_task_handler import parse_leagues_task
 from utils.request_handlers.chat_handler import parse_chat
 from utils.request_handlers.login_handler import parse_login
 
-def parse_json_data(json_data: str) -> dict[str, list[str]]:
+def parse_json_data(json_data: str) -> list[tuple[str, DiscordEmbedData]]:
     data = json.loads(json_data)
     submission = Submission(**data)
-    print(submission)
+    logging.info(f"Parsed submission: {submission}")
 
     type = submission.type
     if type == 'DEATH':
@@ -97,24 +99,75 @@ def parse_json_data(json_data: str) -> dict[str, list[str]]:
     else:
         print(f"Unknown type: {type}")
 
-    return {}
+    return None
 
 async def parse_dink_request(payload_json: str, file: bytes) -> None:
-    # generate an id for this request
-    id = uuid.uuid4()
-    print(f"Request received: {str(id)}")
-    image_required = False
-    file_content = file  # Store file content in memory
+    logging.debug(f"{payload_json}")
     if payload_json:
         try:
             result = parse_json_data(payload_json)
+            logging.debug(result)
             if result:
-                image_required = True
+                for thread_id, parse_response in result:  # Ensure result is a list of tuples
+                    webhook_url = os.getenv("WEBHOOK_URL")
+                    if not webhook_url:
+                        logging.error("WEBHOOK_URL environment variable is not set.")
+                        return
+                    
+                    # Append thread ID as a query parameter
+                    url_with_thread = f"{webhook_url}?thread_id={thread_id}"
+                    
+                    # Construct the embed payload
+                    embed = {
+                        "title": parse_response.title,
+                        "color": 3447003,  # Example color (blue)
+                    }
+                    
+                    # Add optional fields if they exist
+                    if parse_response.description:
+                        embed["description"] = parse_response.description
+                    if parse_response.thumbnailImage:
+                        embed["thumbnail"] = {"url": parse_response.thumbnailImage}
+                    if parse_response.author:
+                        embed["author"] = {
+                            "name": parse_response.author.name,
+                            "icon_url": parse_response.author.icon_url,
+                            "url": parse_response.author.url,
+                        }
+                    if parse_response.fields:
+                        embed["fields"] = [
+                            {
+                                "name": field.name,
+                                "value": field.value,
+                                "inline": field.inline,
+                            }
+                            for field in parse_response.fields
+                        ]
+                    
+                    # If an image is provided, include it in the embed
+                    if file:
+                        embed["image"] = {"url": "attachment://image.png"}
+                    
+                    payload = {
+                        "embeds": [embed]  # Ensure embeds is a list of dictionaries
+                    }
+                    
+                    # Prepare files for the request
+                    files = {
+                        "payload_json": (None, json.dumps(payload), "application/json"),
+                        "file": ("image.png", file, "image/png")
+                    } if file else {
+                        "payload_json": (None, json.dumps(payload), "application/json")
+                    }
+                    
+                    # Send the POST request
+                    response = requests.post(
+                        url_with_thread,
+                        files=files  # Use `files` for both payload and file
+                    )
+                    
+                    if response.status_code != 200:
+                        logging.error(f"Failed to send webhook to thread {thread_id}: {response.status_code} {response.text}")
         except Exception as e:
-            logging.error(f"Error parsing request ({str(id)}): {e}")
+            logging.error(f"Error parsing request: {e}")
             logging.error(json.dumps(payload_json, indent=2))
-    if file_content and image_required:
-        # Save the image to memory
-        with open("lootImage.png", "wb") as f:
-            f.write(file_content)
-    print(f"Request parsed successfully: {str(id)}")

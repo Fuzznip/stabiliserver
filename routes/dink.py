@@ -1,16 +1,21 @@
 from fastapi import APIRouter
-from utils.drop_dictionary import get_drop_dictionary
+from utils.trigger_dictionary import get_whitelist_data
 
 router = APIRouter()
 
 @router.get("/dink")
 async def handle_request():
-    dropDictionary = get_drop_dictionary()
+    whitelistData = get_whitelist_data()
     # Convert the drop dictionary into a list of item names
     # We can do this by looping through each item of the drop dictionary and adding the first index of the tuple to a list
     itemsList = []
-    for (drop, _) in dropDictionary:
+    for (drop, _) in whitelistData.triggerDictionary:
         itemsList.append(drop)
+
+    # Get the list of chat patterns as well
+    chatPatterns = []
+    for (filter, _) in whitelistData.messageFilters.items():
+        chatPatterns.append(f"*{filter}*")
 
     return {
         "killCountInterval": 1,
@@ -127,7 +132,7 @@ async def handle_request():
         "screenshotScale": 100,
         "notifyChat": True,
         "lootNotifMessage": "",
-        "chatPatterns": "*:*",
+        "chatPatterns": "\n".join(chatPatterns) if chatPatterns else "",
         "diaryEnabled": True,
         "deathNotifPvpMessage": "",
         "groupStorageEnabled": False,

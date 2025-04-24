@@ -3,7 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from routes.dink_submission import router as stability_router
 from routes.dink import router as dink_router
-from routes.reload_drop_dictionary import router as drop_router
+from routes.reload_drop_dictionary import router as item_router
+import logging
+logging.basicConfig(level=logging.INFO)
 
 load_dotenv()
 
@@ -20,4 +22,4 @@ app.add_middleware(
 
 app.include_router(stability_router)
 app.include_router(dink_router)
-app.include_router(drop_router)
+app.include_router(item_router)

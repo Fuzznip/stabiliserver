@@ -6,13 +6,14 @@ from utils.request_handlers.parse_response import DiscordEmbedData, DiscordEmbed
 
 def write(player: str, discordId: str, trigger: str, source: str, quantity: str, totalValue: str, type: str) -> None:
     data = DiscordEmbedData(
-        title=f"{player} has received a {trigger} from {source}",
+        title=f"{player}: {trigger} from {source}",
         thumbnailImage="https://i.imgur.com/4LdSYto.jpeg",
-        author=DiscordEmbedAuthor(name=player),
-        description=f"Quantity: {quantity}\nTotal Value: {totalValue}",
+        author=DiscordEmbedAuthor(name="ToA Suckers"),
+        description=f"They have been awarded 10 coins and a 4 sided die!",
         fields=[
-            DiscordEmbedField(name="Item", value=trigger, inline=True),
-            DiscordEmbedField(name="Source", value=source, inline=True)
+            DiscordEmbedField(name="Stars", value="6", inline=True),
+            DiscordEmbedField(name="Coins", value="144", inline=True),
+            DiscordEmbedField(name="Island", value="Island of Stone", inline=True),
         ]
     )
     

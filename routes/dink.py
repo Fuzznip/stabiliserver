@@ -106,7 +106,6 @@ async def handle_request():
         "clueMinValue": 0,
         "levelSendImage": True,
         "embedColor": "#FFF40098",
-        "chatPrivacy": "HIDE_NONE",
         "deathIgnoredRegions": "123, 456, 789",
         "chatSendImage": True,
         "groupStorageIncludeClan": True,

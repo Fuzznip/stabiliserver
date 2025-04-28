@@ -8,7 +8,8 @@ from pydantic import BaseModel
 import logging
 
 class TriggerWhitelist(BaseModel):
-    triggers: set[str] | None = None
+    dropTriggers: set[str] | None = None
+    killCountTriggers: set[str] | None = None
     messageFilters: set[str] | None = None
 
 router = APIRouter()
@@ -31,6 +32,9 @@ async def populate_drop_dictionary(api_url: str):
                 else:
                     whitelistData.triggers.append((value.lower(), ""))
 
+        if "killCountTriggers" in jsonData:
+            whitelistData.killCountTriggers = jsonData["killCountTriggers"]
+
         if "messageFilters" in jsonData:
             whitelistData.messageFilters = jsonData["messageFilters"]
 
@@ -45,7 +49,7 @@ async def populate_drop_dictionary(api_url: str):
 async def handle(whitelistData: TriggerWhitelist):
     logging.info("Reloading drop dictionary...")
     logging.info("Whitelist Data: %s", whitelistData)
-    if whitelistData.triggers or whitelistData.messageFilters:
+    if whitelistData.dropTriggers or whitelistData.messageFilters or whitelistData.killCountTriggers:
         jsonData = whitelistData.model_dump()
     else:
         jsonData = await populate_drop_dictionary(os.environ.get("API"))

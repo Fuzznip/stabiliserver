@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+import os
 from fastapi import APIRouter
 from utils.trigger_dictionary import get_whitelist_data
 
@@ -8,9 +11,9 @@ async def handle_request():
     whitelistData = get_whitelist_data()
     # Convert the drop dictionary into a list of item names
     # We can do this by looping through each item of the drop dictionary and adding the first index of the tuple to a list
-    itemsList = []
+    itemsList = set()
     for (drop, _) in whitelistData.triggers:
-        itemsList.append(drop)
+        itemsList.add(drop)
 
     # Get the list of chat patterns as well
     chatPatterns = []
@@ -114,8 +117,8 @@ async def handle_request():
         "sendClanName": True,
         "threadNameTemplate": "",
         "playerLookupService": "OSRS_HISCORE",
-        "dynamicConfigUrl": "http://127.0.0.1:8000/dink",
-        "discordWebhook": "http://127.0.0.1:8000/stability",
+        "dynamicConfigUrl": os.environ.get("DOMAIN_URL") + "/dink",
+        "discordWebhook": os.environ.get("DOMAIN_URL") + "/stability",
         "tradeNotifyMessage": "",
         "lootIncludePlayer": False,
         "combatTaskMinTier": "EASY",

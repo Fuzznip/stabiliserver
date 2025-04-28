@@ -2,6 +2,7 @@
 # eg. { ("abyssal whip", "abyssal demon"): [ "1233130963870154864", "1232048319996625029", ... ] }
 class WhitelistData:
     triggers: list[tuple[str, str]] = []
+    killCountTriggers: list[str] = []
     messageFilters: list[str] = []
 
 data = WhitelistData()

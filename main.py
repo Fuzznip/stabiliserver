@@ -1,23 +1,33 @@
-from flask import Flask
-from flask_cors import CORS
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-load_dotenv()
+from routes.dink_submission import router as stability_router
+from routes.dink import router as dink_router
+from routes.reload_drop_dictionary import router as item_router
 import os
+import logging
+from routes.reload_drop_dictionary import populate_drop_dictionary
+logging.basicConfig(level=logging.INFO)
 
-from routes.reload_cache import reload_cache
-from routes.drop_submission_route import drop_submission_route
-from routes.bot_submission_route import bot_submission_route
+load_dotenv()
 
-app = Flask(__name__)
-CORS(app)
+async def lifespan(app: FastAPI):
+    logging.info("Starting application lifespan...")
+    await populate_drop_dictionary(os.environ.get("API"))
+    yield  # This is where the application runs
+    logging.info("Shutting down application lifespan...")
 
-app.register_blueprint(reload_cache, url_prefix = '/reload_cache')
-app.register_blueprint(drop_submission_route, url_prefix = '/stability')
-app.register_blueprint(bot_submission_route, url_prefix = '/stabilibot')
+app = FastAPI(lifespan=lifespan)
 
-if __name__ == '__main__':
-    from waitress import serve
-    print("Starting server...")
-    port = os.environ.get('PORT', 8080)
-    host = os.environ.get('HOST', "0.0.0.0")
-    serve(app, host = host, port = port)
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(stability_router)
+app.include_router(dink_router)
+app.include_router(item_router)

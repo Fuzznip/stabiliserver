@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from routes.dink_submission import router as stability_router
 from routes.dink import router as dink_router
 from routes.reload_drop_dictionary import router as item_router
+from routes.bot_submission import router as bot_router
 import os
 import logging
 from routes.reload_drop_dictionary import populate_drop_dictionary
@@ -31,3 +32,4 @@ app.add_middleware(
 app.include_router(stability_router)
 app.include_router(dink_router)
 app.include_router(item_router)
+app.include_router(bot_router)

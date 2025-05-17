@@ -22,7 +22,7 @@ def submit_kill_count(rsn: str, discordId: str, boss: str, count: int) -> list[t
         discordId=discordId,
         trigger=boss,
         source=boss,
-        quantity=count,
+        quantity=1,
         totalValue=0,
         type="KC"
     )

@@ -7,9 +7,10 @@ from routes.dink import router as dink_router
 from routes.reload_drop_dictionary import router as item_router
 from routes.bot_submission import router as bot_router
 import os
+import traceback
 import logging
 from routes.reload_drop_dictionary import populate_drop_dictionary
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 load_dotenv()

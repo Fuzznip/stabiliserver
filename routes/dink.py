@@ -17,7 +17,7 @@ async def handle_request():
 
     # Get the list of chat patterns as well
     chatPatterns = []
-    for (filter, _) in whitelistData.messageFilters:
+    for filter in whitelistData.messageFilters:
         chatPatterns.append(f"*{filter}*")
 
     return {

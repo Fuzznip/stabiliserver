@@ -39,8 +39,8 @@ def parse_kill_count(data: Submission) -> list[tuple[str, DiscordEmbedData]]:
     # Get the whitelist data to check if this boss is in the kill count triggers
     whitelist = get_whitelist_data()
     
-    # Check if the kill count is for a boss we care about
-    if boss.lower() in whitelist.killCountTriggers:
+    # Check if the kill count is for a boss we care about (case insensitive)
+    if boss.lower() in [b.lower() for b in whitelist.killCountTriggers]:
         print(f"Found whitelisted kill count for {boss} with count {count}")
         
         # Submit the kill count to the API using our dedicated function

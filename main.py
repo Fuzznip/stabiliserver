@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from routes.dink_submission import router as stability_router
@@ -8,7 +9,8 @@ from routes.bot_submission import router as bot_router
 import os
 import logging
 from routes.reload_drop_dictionary import populate_drop_dictionary
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -19,6 +21,18 @@ async def lifespan(app: FastAPI):
     logging.info("Shutting down application lifespan...")
 
 app = FastAPI(lifespan=lifespan)
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    # Log the full exception with stack trace
+    logger.error(f"Unhandled exception: {str(exc)}")
+    logger.error(traceback.format_exc())
+    
+    # Return a structured error response
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal server error", "detail": str(exc)},
+    )
 
 # Enable CORS
 app.add_middleware(

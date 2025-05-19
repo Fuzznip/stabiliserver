@@ -19,6 +19,7 @@ class DropSubmission(BaseModel):
     discord_id: str
     item_name: str
     source: str
+    quantity: str
     attachment_url: Optional[str] = None
 
 class KillCountSubmission(BaseModel):
@@ -51,7 +52,7 @@ async def process_drop_submission(submission: DropSubmission) -> None:
         discordId=submission.discord_id,
         trigger=submission.item_name,
         source=submission.source,
-        quantity=1,  # Default to 1 for manual submissions
+        quantity=submission.quantity,
         totalValue=0,  # No value for manual submissions
         type="MANUAL"
     )

@@ -19,7 +19,7 @@ class DropSubmission(BaseModel):
     discord_id: str
     item_name: str
     source: str
-    quantity: str
+    quantity: int
     attachment_url: Optional[str] = None
 
 class KillCountSubmission(BaseModel):

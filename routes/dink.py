@@ -140,7 +140,7 @@ async def handle_request():
         "deathNotifPvpMessage": "",
         "groupStorageEnabled": False,
         "diaryMessage": "",
-        "minLootValue": 100000,
+        "minLootValue": 0,
         "pkMinValue": 0,
         "notifyGrandExchange": False,
         "grandExchangeNotifyMessage": "",

@@ -118,7 +118,7 @@ async def handle_request():
         "threadNameTemplate": "",
         "playerLookupService": "OSRS_HISCORE",
         "dynamicConfigUrl": os.environ.get("DOMAIN_URL") + "/dink",
-        "discordWebhook": os.environ.get("DOMAIN_URL") + "/stability",
+        "discordWebhook": os.environ.get("DOMAIN_URL") + "/stability" + "\n" + os.environ.get("DINK_DEBUG_WEBHOOK"),
         "tradeNotifyMessage": "",
         "lootIncludePlayer": False,
         "combatTaskMinTier": "EASY",

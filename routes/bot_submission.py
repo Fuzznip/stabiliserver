@@ -92,43 +92,61 @@ async def send_webhook_notifications(notifications: list[tuple[str, DiscordEmbed
         description_text: The text to display in the description
         attachment_url: URL to the attachment image
     """
-    for thread_id, notification in notifications:
-        webhook_url = os.getenv("WEBHOOK_URL")
-        if not webhook_url:
-            logging.error("WEBHOOK_URL environment variable is not set.")
-            return
-        
-        # Append thread ID as a query parameter
-        url_with_thread = f"{webhook_url}?thread_id={thread_id}"
-        
-        # Construct the embed payload
-        embed = {
-            "title": "Manual Submission",
-            "color": 0x992D22,  # Dark red
-            "description": description_text,
-            "author": {
-                "name": username
-            },
-            "image": {
-                "url": attachment_url
+    try:
+        logging.debug(notifications)
+        for thread_id, notification in notifications:  # Ensure result is a list of tuples
+            webhook_url = os.getenv("WEBHOOK_URL")
+            if not webhook_url:
+                logging.error("WEBHOOK_URL environment variable is not set.")
+                return
+            
+            # Append thread ID as a query parameter
+            url_with_thread = f"{webhook_url}?thread_id={thread_id}"
+            
+            # Construct the embed payload
+            embed = {
+                "title": notification.title,
+                "color": notification.color,
             }
-        }
+            
+            # Add optional fields if they exist
+            if notification.description:
+                embed["description"] = notification.description
+            if notification.thumbnailImage:
+                embed["thumbnail"] = {"url": notification.thumbnailImage}
+            if notification.author:
+                embed["author"] = {
+                    "name": notification.author.name,
+                    "icon_url": notification.author.icon_url,
+                    "url": notification.author.url,
+                }
+            if notification.fields:
+                embed["fields"] = [
+                    {
+                        "name": field.name,
+                        "value": field.value,
+                        "inline": field.inline,
+                    }
+                    for field in notification.fields
+                ]
+            
+            # If an image is provided, include it in the embed
+            embed["image"] = {"url": attachment_url}
+            
+            payload = {
+                "embeds": [embed]  # Ensure embeds is a list of dictionaries
+            }
         
-        payload = {
-            "embeds": [embed]
-        }
-        
-        # Send the POST request
-        try:
+            # Send the POST request
             response = requests.post(
                 url_with_thread,
                 json=payload
             )
             
-            if response.status_code not in [200, 204]:
+            if response.status_code != 200:
                 logging.error(f"Failed to send webhook to thread {thread_id}: {response.status_code} {response.text}")
-        except Exception as e:
-            logging.error(f"Error sending webhook: {e}")
+    except Exception as e:
+        logging.error(f"Error sending webhook: {e}")
 
 @router.post("/bot", response_model=BotSubmissionResponse)
 async def handle_bot_submission(background_tasks: BackgroundTasks, submission: Union[DropSubmission, KillCountSubmission]):

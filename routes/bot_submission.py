@@ -163,12 +163,12 @@ async def handle_bot_submission(background_tasks: BackgroundTasks, submission: U
         if submission.submission_type == "drop":
             drop_submission = DropSubmission(**submission.model_dump())
             background_tasks.add_task(process_drop_submission, drop_submission)
-            return BotSubmissionResponse(message="Drop submission received and processed")
+            return BotSubmissionResponse(message=f"Drop submission received and processed with drop {f"{drop_submission.quantity}x" if drop_submission.quantity > 1 else ""}{drop_submission.item_name} from {drop_submission.source}")
         
         elif submission.submission_type == "kc":
             kc_submission = KillCountSubmission(**submission.model_dump())
             background_tasks.add_task(process_kc_submission, kc_submission)
-            return BotSubmissionResponse(message="Kill count submission received and processed")
+            return BotSubmissionResponse(message=f"Kill count submission received and processed. Added {kc_submission.kill_count} KC for {kc_submission.boss_name}.")
         
         else:
             raise HTTPException(status_code=400, detail=f"Unknown submission_type: {submission.submission_type}")

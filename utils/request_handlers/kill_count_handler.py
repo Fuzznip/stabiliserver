@@ -22,7 +22,7 @@ def submit_kill_count(rsn: str, discordId: str, boss: str, count: int) -> list[t
         discordId=discordId,
         trigger=boss,
         source=boss,
-        quantity=1,
+        quantity=count,
         totalValue=0,
         type="KC"
     )
@@ -44,7 +44,7 @@ def parse_kill_count(data: Submission) -> list[tuple[str, DiscordEmbedData]]:
         print(f"Found whitelisted kill count for {boss} with count {count}")
         
         # Submit the kill count to the API using our dedicated function
-        for notification_data in submit_kill_count(rsn, discordId, boss, count):
+        for notification_data in submit_kill_count(rsn, discordId, boss, 1): # Since the submission cannot be more than 1 kill at a time through automatic subnmission, set count to 1 here
             notifications.append(notification_data)
     else:
         print(f"Kill count for {boss} not in whitelist, ignoring")

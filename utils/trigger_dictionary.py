@@ -1,5 +1,3 @@
-# dropDictionary is a dictionary of pairs of items and drop sources to the list of channels they should post in
-# eg. { ("abyssal whip", "abyssal demon"): [ "1233130963870154864", "1232048319996625029", ... ] }
 class WhitelistData:
     triggers: list[tuple[str, str]] = []
     killCountTriggers: list[str] = []
@@ -18,5 +16,6 @@ def set_whitelist_data(newWhitelistData: WhitelistData) -> None:
     Sets the whitelist data.
     This is used to update the whitelist data when it is reloaded.
     """
-    global data
-    data = newWhitelistData
+    data.triggers = newWhitelistData.triggers
+    data.killCountTriggers = newWhitelistData.killCountTriggers
+    data.messageFilters = newWhitelistData.messageFilters

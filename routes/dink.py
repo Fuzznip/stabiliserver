@@ -132,7 +132,7 @@ async def handle_request():
         "levelNotifMessage": "",
         "killCountBestTimeMessage": "",
         "collectionSendImage": True,
-        "screenshotScale": 45,
+        "screenshotScale": 100,
         "notifyChat": True,
         "lootNotifMessage": "",
         "chatPatterns": "\n".join(chatPatterns) if chatPatterns else "",

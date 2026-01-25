@@ -28,9 +28,9 @@ from utils.request_handlers.leagues_task_handler import parse_leagues_task
 from utils.request_handlers.chat_handler import parse_chat
 from utils.request_handlers.login_handler import parse_login
 
-def parse_json_data(json_data: str) -> list[tuple[str, DiscordEmbedData]]:
+def parse_json_data(json_data: str, file: bytes = None) -> list[tuple[str, DiscordEmbedData]]:
     data = json.loads(json_data)
-    
+
     type = data.get("type")
 
     base_data = {k: v for k, v in data.items() if k != 'extra'}
@@ -51,7 +51,7 @@ def parse_json_data(json_data: str) -> list[tuple[str, DiscordEmbedData]]:
     elif type == 'LOOT':
         extra = TypeAdapter(LootExtra).validate_python(raw_extra)
         submission = Submission(**base_data, extra=extra)
-        return parse_loot(submission)
+        return parse_loot(submission, file)
     elif type == 'SLAYER':
         extra = TypeAdapter(SlayerExtra).validate_python(raw_extra)
         submission = Submission(**base_data, extra=extra)
@@ -129,7 +129,7 @@ async def parse_dink_request(payload_json: str, file: bytes) -> None:
     logging.debug(f"{payload_json}")
     if payload_json:
         try:
-            notifications: list[tuple[str, DiscordEmbedData]] = parse_json_data(payload_json)
+            notifications: list[tuple[str, DiscordEmbedData]] = parse_json_data(payload_json, file)
             logging.debug(notifications)
             if notifications:
                 for thread_id, notification in notifications:  # Ensure result is a list of tuples

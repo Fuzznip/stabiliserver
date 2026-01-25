@@ -7,19 +7,23 @@ import logging
 from .trigger_dictionary import get_whitelist_data
 from utils.request_handlers.parse_response import DiscordEmbedData, DiscordEmbedField, DiscordEmbedAuthor
 
-def write(player: str, discordId: str, trigger: str, source: str, quantity: str, totalValue: str, type: str) -> list[tuple[str, DiscordEmbedData]]:
+def write(player: str, discordId: str, trigger: str, source: str, quantity: str, totalValue: str, type: str, imgPath: str = None) -> list[tuple[str, DiscordEmbedData]]:
     # Send to the endpoint "/events/submit"
+    payload = {
+        "rsn": player,
+        "id": discordId,
+        "trigger": trigger,
+        "source": source,
+        "quantity": quantity,
+        "totalValue": totalValue,
+        "type": type,
+    }
+    if imgPath:
+        payload["imgPath"] = imgPath
+
     response = requests.post(
         os.environ.get("API") + "/events/submit",
-        json={
-            "rsn": player,
-            "id": discordId,
-            "trigger": trigger,
-            "source": source,
-            "quantity": quantity,
-            "totalValue": totalValue,
-            "type": type,
-        }
+        json=payload
     )
 
     if response.status_code != 200:

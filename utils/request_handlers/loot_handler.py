@@ -41,7 +41,7 @@ def submit_loot(rsn, discordId, source, item, itemPrice, itemQuantity, submitTyp
             quantity=itemQuantity,
             totalValue=itemPrice * itemQuantity,
             type=submitType,
-            imgPath=img_path
+            img_path=img_path
         )
 
     # Check if the query is in the drop dictionary without a specific source
@@ -55,7 +55,7 @@ def submit_loot(rsn, discordId, source, item, itemPrice, itemQuantity, submitTyp
             quantity=itemQuantity,
             totalValue=itemPrice * itemQuantity,
             type=submitType,
-            imgPath=img_path
+            img_path=img_path
         )
 
     return []

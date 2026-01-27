@@ -7,7 +7,7 @@ import logging
 from .trigger_dictionary import get_whitelist_data
 from utils.request_handlers.parse_response import DiscordEmbedData, DiscordEmbedField, DiscordEmbedAuthor
 
-def write(player: str, discordId: str, trigger: str, source: str, quantity: str, totalValue: str, type: str, imgPath: str = None) -> list[tuple[str, DiscordEmbedData]]:
+def write(player: str, discordId: str, trigger: str, source: str, quantity: str, totalValue: str, type: str, img_path: str = None) -> list[tuple[str, DiscordEmbedData]]:
     # Send to the endpoint "/events/submit"
     payload = {
         "rsn": player,
@@ -18,8 +18,8 @@ def write(player: str, discordId: str, trigger: str, source: str, quantity: str,
         "totalValue": totalValue,
         "type": type,
     }
-    if imgPath:
-        payload["imgPath"] = imgPath
+    if img_path:
+        payload["img_path"] = img_path
 
     response = requests.post(
         os.environ.get("API") + "/events/submit",

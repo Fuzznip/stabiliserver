@@ -75,7 +75,7 @@ def parse_json_data(json_data: str, file: bytes = None) -> list[tuple[str, Disco
     elif type == 'PET':
         extra = TypeAdapter(PetExtra).validate_python(raw_extra)
         submission = Submission(**base_data, extra=extra)
-        return parse_pet(submission)
+        return parse_pet(submission, file)
     elif type == 'SPEEDRUN':
         extra = TypeAdapter(SpeedrunExtra).validate_python(raw_extra)
         submission = Submission(**base_data, extra=extra)

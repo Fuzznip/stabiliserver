@@ -30,22 +30,16 @@ def submit_pet(rsn: str, discordId: str, pet_name: str, img_path: str = None) ->
 
 def parse_pet(data: Submission, file: bytes = None) -> list[tuple[str, DiscordEmbedData]]:
     notifications: list[tuple[str, DiscordEmbedData]] = []
-
-    # Extract necessary data from the submission
     rsn = data.playerName
     discordId = data.discordUser.id if data.discordUser else "None"
     pet_name = data.extra.petName
 
-    # Upload to S3 if file provided (all pets are valuable, no whitelist check needed)
     img_path = None
     if file:
         img_path = upload_to_s3(file)
 
-    # For pets, we process all of them without checking a whitelist
-    # since pets are rare and valuable
     print(f"Processing pet: {pet_name} for player {rsn}")
 
-    # Call our dedicated submit_pet function
     for notification_data in submit_pet(rsn, discordId, pet_name, img_path):
         notifications.append(notification_data)
 

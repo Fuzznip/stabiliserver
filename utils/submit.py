@@ -14,8 +14,8 @@ def write(player: str, discordId: str, trigger: str, source: str, quantity: int,
         "id": discordId,
         "trigger": trigger,
         "source": source,
-        "quantity": str(quantity),
-        "totalValue": str(totalValue),
+        "quantity": quantity,
+        "totalValue": totalValue,
         "type": type,
     }
     if img_path:

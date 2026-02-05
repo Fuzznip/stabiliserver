@@ -5,7 +5,7 @@ from ..trigger_dictionary import get_whitelist_data
 from ..submit import write
 from ..s3_upload import upload_to_s3
 
-
+# TODO: Check blacklists
 def is_whitelisted(item: str, source: str) -> bool:
     """Check if an item/source combo matches the whitelist."""
     whitelistData = get_whitelist_data()
@@ -17,36 +17,9 @@ def is_whitelisted(item: str, source: str) -> bool:
         return True
     return False
 
-
 # Return value in the form of a list of tuples of item names to their lists of output ids
-def submit_loot(rsn, discordId, source, item, itemPrice, itemQuantity, submitType, img_path: str = None) -> list[tuple[str, DiscordEmbedData]]:
-    whitelistData = get_whitelist_data()
-    # Print out the contents of the drop dictionary for debugging
-    logging.debug("Drop Dictionary:")
-    for key, value in whitelistData.triggers:
-        logging.debug(f"Key: {key}, Value: {value}")
-
-    # Create a query for the item and source
-    query = (item.lower(), source.lower())
-
-    # TODO: Check blacklists
-
-    # Check if the query is in the drop dictionary
-    if query in whitelistData.triggers:
-        return write(
-            player=rsn,
-            discordId=discordId,
-            trigger=item,
-            source=source,
-            quantity=itemQuantity,
-            totalValue=itemPrice * itemQuantity,
-            type=submitType,
-            img_path=img_path
-        )
-
-    # Check if the query is in the drop dictionary without a specific source
-    query = (item.lower(), "")
-    if query in whitelistData.triggers:
+def submit_loot(rsn, discordId, source, item, itemPrice, itemQuantity, submitType, img_path: str | None = None) -> list[tuple[str, DiscordEmbedData]]:
+    if is_whitelisted(item, source):
         return write(
             player=rsn,
             discordId=discordId,
@@ -59,7 +32,6 @@ def submit_loot(rsn, discordId, source, item, itemPrice, itemQuantity, submitTyp
         )
 
     return []
-
 
 def parse_loot(data: Submission, file: bytes = None) -> list[tuple[str, DiscordEmbedData]]:
     notifications: list[tuple[str, DiscordEmbedData]] = []

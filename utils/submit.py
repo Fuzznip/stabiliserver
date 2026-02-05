@@ -7,15 +7,15 @@ import logging
 from .trigger_dictionary import get_whitelist_data
 from utils.request_handlers.parse_response import DiscordEmbedData, DiscordEmbedField, DiscordEmbedAuthor
 
-def write(player: str, discordId: str, trigger: str, source: str, quantity: str, totalValue: str, type: str, img_path: str = None) -> list[tuple[str, DiscordEmbedData]]:
+def write(player: str, discordId: str, trigger: str, source: str, quantity: int, totalValue: int, type: str, img_path: str | None = None) -> list[tuple[str, DiscordEmbedData]]:
     # Send to the endpoint "/events/submit"
     payload = {
         "rsn": player,
         "id": discordId,
         "trigger": trigger,
         "source": source,
-        "quantity": quantity,
-        "totalValue": totalValue,
+        "quantity": str(quantity),
+        "totalValue": str(totalValue),
         "type": type,
     }
     if img_path:

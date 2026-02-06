@@ -35,10 +35,11 @@ class CollectionExtra(BaseModel):
     rankProgress: int
     logsNeededForNextRank: int
     nextRank: str
-    justCompletedRank: str
+    justCompletedRank: str | None = None
     dropperName: str | None = None
     dropperType: str | None = None
     dropperKillCount: int | None = None
+    dropRate: float | None = None
 
 # Level Models
 class CombatLevel(BaseModel):

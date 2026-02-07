@@ -11,6 +11,12 @@ def winter_bingo_2026_check_totem_quantity(trigger: str) -> int:
         return 1
     return 1
 
+
+def winter_bingo_2026_check_totem_message(message: str) -> int:
+    if "rummage through the offerings" in message.lower():
+        return "Vale Offering Rummage"
+    return message
+
 def parse_chat(data: Submission, file: bytes | None = None) -> list[tuple[str, DiscordEmbedData]]:
     img_path = None
     if file:
@@ -19,7 +25,7 @@ def parse_chat(data: Submission, file: bytes | None = None) -> list[tuple[str, D
     return write(
         player=data.playerName,
         discordId=data.discordUser.id if data.discordUser else "None",
-        trigger=data.extra.message,
+        trigger=winter_bingo_2026_check_totem_message(data.extra.message),
         source=data.extra.source,
         quantity=winter_bingo_2026_check_totem_quantity(data.extra.message),
         totalValue=0,

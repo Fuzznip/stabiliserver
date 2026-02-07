@@ -473,6 +473,9 @@ def parse_login(data) -> dict[str, list[str]]:
 # function to delegate parsing to its own function basing on the 'type' data
 def parse_json_data(json_data) -> dict[str, list[str]]:
     data = json.loads(json_data)
+    logging.info(data)
+        logging.info(f"Processing drop submission for {submission.user} ({submission.discord_id}): {submission.item_name} from {submission.source}")
+
 
     # types are: 'DEATH', 'COLLECTION, 'LEVEL', 'LOOT', 'SLAYER', 'QUEST', 
     # 'CLUE', 'KILL_COUNT', 'COMBAT_ACHIEVEMENT', 'PET', 'SPEEDRUN', 'BARBARIAN_ASSAULT_GAMBLE', 

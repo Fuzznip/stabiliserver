@@ -3,6 +3,10 @@ from utils.s3_upload import upload_to_s3
 from .parse_response import DiscordEmbedData
 from ..submit import write
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def winter_bingo_2026_check_totem_quantity(trigger: str) -> int:
     # Check if "offerings five times" is in the trigger
     if "you rummage through the offerings five times" in trigger.lower():
@@ -18,6 +22,7 @@ def winter_bingo_2026_check_totem_message(message: str) -> int:
     return message
 
 def parse_chat(data: Submission, file: bytes | None = None) -> list[tuple[str, DiscordEmbedData]]:
+    logger.info(f'parsing chat: ${data}')
     img_path = None
     if file:
         img_path = upload_to_s3(file)

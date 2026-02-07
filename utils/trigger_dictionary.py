@@ -1,7 +1,7 @@
 class WhitelistData:
     triggers: list[tuple[str, str]] = []
     killCountTriggers: list[str] = []
-    messageFilters: list[str] = []
+    messageFilters: list[tuple[str, str]] = []
 
 data = WhitelistData()
 

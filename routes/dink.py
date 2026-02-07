@@ -17,8 +17,8 @@ async def handle_request():
 
     # Get the list of chat patterns as well
     chatPatterns = []
-    for filter in whitelistData.messageFilters:
-        chatPatterns.append(f"*{filter}*")
+    for (_, source) in whitelistData.messageFilters:
+        chatPatterns.append(f"*{source}*")
 
     return {
         "killCountInterval": 1,

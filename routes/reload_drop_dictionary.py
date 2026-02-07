@@ -36,7 +36,11 @@ async def populate_drop_dictionary(api_url: str):
             whitelistData.killCountTriggers = jsonData["killCountTriggers"]
 
         if "messageFilters" in jsonData:
-            whitelistData.messageFilters = jsonData["messageFilters"]
+            for value in jsonData["messageFilters"]:
+                if ":" in value:
+                    whitelistData.messageFilters.append(tuple(value.lower().split(":")))
+                else:
+                    whitelistData.messageFilters.append((value.lower(), ""))
 
         set_whitelist_data(whitelistData)
         logging.info("Drop dictionary populated successfully.")

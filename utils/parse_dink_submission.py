@@ -32,6 +32,7 @@ def parse_json_data(json_data: str, file: bytes = None) -> list[tuple[str, Disco
     data = json.loads(json_data)
 
     type = data.get("type")
+    logging.info(f"Received event: type={type} player={data.get('playerName')!r}")
 
     base_data = {k: v for k, v in data.items() if k != 'extra'}
     raw_extra = data.get("extra", {})

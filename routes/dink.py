@@ -91,7 +91,7 @@ async def handle_request():
         "clueMinTier": "BEGINNER",
         "pkNotifyMessage": "",
         "killCountPenanceQueen": True,
-        "baseRetryDelay": 2000,
+        "baseRetryDelay": 30000,
         "clueImageMinValue": 0,
         "lootIncludeGambles": False,
         "deathIgnoreSafe": True,

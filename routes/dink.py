@@ -50,7 +50,7 @@ async def handle_request():
         "petNotifMessage": "",
         "nameFilterMode": "DENY",
         "lootRarityThreshold": 0,
-        "maxRetries": 3,
+        "maxRetries": 0,
         "speedrunPBOnly": False,
         "embedFooterText": "",
         "includeLocation": True,

@@ -19,9 +19,9 @@ def winter_bingo_2026_check_totem_quantity(trigger: str) -> int:
 def winter_bingo_2026_check_chats(message: str) -> int:
     if "rummage through the offerings" in message.lower():
         return "Vale Offering Rummage"
-    if "Molch pearl" in message.lower():
+    if "molch pearl" in message.lower():
         return "Molch pearl"
-    if "The cormorant has brought you a very strange tench" in message.lower():
+    if "the cormorant has brought you a very strange tench" in message.lower():
         return "Golden tench"
     return message
 

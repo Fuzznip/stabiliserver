@@ -22,7 +22,7 @@ def winter_bingo_2026_check_chats(message: str) -> int:
     if "Molch pearl" in message.lower():
         return "Molch pearl"
     if "The cormorant has brought you a very strange tench" in message.lower():
-        return "Golden Tench"
+        return "Golden tench"
     return message
 
 def parse_chat(data: Submission, file: bytes | None = None) -> list[tuple[str, DiscordEmbedData]]:

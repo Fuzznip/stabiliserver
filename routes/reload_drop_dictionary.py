@@ -28,7 +28,7 @@ async def populate_drop_dictionary(api_url: str):
         if "triggers" in jsonData:
             for value in jsonData["triggers"]:
                 if ":" in value:
-                    whitelistData.triggers.append(tuple(value.lower().split(":")))
+                    whitelistData.triggers.append(tuple(value.lower().split(":", 1)))
                 else:
                     whitelistData.triggers.append((value.lower(), ""))
 
@@ -38,7 +38,7 @@ async def populate_drop_dictionary(api_url: str):
         if "messageFilters" in jsonData:
             for value in jsonData["messageFilters"]:
                 if ":" in value:
-                    whitelistData.messageFilters.append(tuple(value.lower().split(":")))
+                    whitelistData.messageFilters.append(tuple(value.lower().split(":", 1)))
                 else:
                     whitelistData.messageFilters.append((value.lower(), ""))
 

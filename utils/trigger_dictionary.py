@@ -1,7 +1,8 @@
 class WhitelistData:
-    triggers: list[tuple[str, str]] = []
-    killCountTriggers: list[str] = []
-    messageFilters: list[tuple[str, str]] = []
+    def __init__(self):
+        self.triggers: list[tuple[str, str]] = []
+        self.killCountTriggers: list[str] = []
+        self.messageFilters: list[tuple[str, str]] = []
 
 data = WhitelistData()
 

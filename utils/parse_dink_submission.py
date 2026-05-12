@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-import requests
+import httpx
 from pydantic import TypeAdapter
 from models.submission import Submission
 from models.notification_models import *
@@ -186,11 +186,9 @@ async def parse_dink_request(payload_json: str, file: bytes) -> None:
                     }
                     
                     # Send the POST request
-                    response = requests.post(
-                        url_with_thread,
-                        files=files  # Use `files` for both payload and file
-                    )
-                    
+                    async with httpx.AsyncClient() as client:
+                        response = await client.post(url_with_thread, files=files)
+
                     if response.status_code != 200:
                         logging.error(f"Failed to send webhook to thread {thread_id}: {response.status_code} {response.text}")
         except Exception as e:

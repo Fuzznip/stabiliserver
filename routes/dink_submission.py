@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, BackgroundTasks, Form, File, UploadFile, Request
 from utils.parse_dink_submission import parse_dink_request
 import httpx
@@ -16,7 +17,8 @@ async def handle_request(
 ):
     client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown")
     user_agent = request.headers.get("user-agent", "unknown")
-    logger.info(f"POST /stability from ip={client_ip!r} user-agent={user_agent!r}")
+    data = json.loads(payload_json)
+    logger.info(f"POST /stability from ip={client_ip!r} user-agent={user_agent!r} player={data.get('playerName')!r}")
 
     file_content = None
     filename = None

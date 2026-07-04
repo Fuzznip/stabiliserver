@@ -28,6 +28,10 @@ def process_chat_triggers(message: str) -> str:
         return "Hunter Rumour"
     if "gwenith glide completion count" in msg:
         return "Gwenith Glide Laps"
+    if "tztok-jad kill count" in msg:
+        return "Fire cape"
+    if "tzkal-zuk kill count" in msg:
+        return "Infernal cape"
     return message
 
 def parse_chat(data: Submission, file: bytes | None = None) -> list[tuple[str, DiscordEmbedData]]:

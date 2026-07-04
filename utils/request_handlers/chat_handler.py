@@ -16,13 +16,18 @@ def winter_bingo_2026_check_totem_quantity(trigger: str) -> int:
     return 1
 
 
-def winter_bingo_2026_check_chats(message: str) -> int:
-    if "rummage through the offerings" in message.lower():
+def process_chat_triggers(message: str) -> str:
+    msg = message.lower()
+    if "rummage through the offerings" in msg:
         return "Vale Offering Rummage"
-    if "molch pearl" in message.lower():
+    if "molch pearl" in msg:
         return "Molch pearl"
-    if "the cormorant has brought you a very strange tench" in message.lower():
+    if "the cormorant has brought you a very strange tench" in msg:
         return "Golden tench"
+    if "rumours for the hunter guild" in msg:
+        return "Hunter Rumour"
+    if "gwenith glide completion count" in msg:
+        return "Gwenith Glide Laps"
     return message
 
 def parse_chat(data: Submission, file: bytes | None = None) -> list[tuple[str, DiscordEmbedData]]:
@@ -34,7 +39,7 @@ def parse_chat(data: Submission, file: bytes | None = None) -> list[tuple[str, D
     return write(
         player=data.playerName,
         discordId=data.discordUser.id if data.discordUser else "None",
-        trigger=winter_bingo_2026_check_chats(data.extra.message),
+        trigger=process_chat_triggers(data.extra.message),
         source=data.extra.source,
         quantity=winter_bingo_2026_check_totem_quantity(data.extra.message),
         totalValue=0,

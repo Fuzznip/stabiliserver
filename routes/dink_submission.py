@@ -17,7 +17,14 @@ async def handle_request(
 ):
     client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown")
     user_agent = request.headers.get("user-agent", "unknown")
-    data = json.loads(payload_json)
+    try:
+        data = json.loads(payload_json)
+    except (TypeError, json.JSONDecodeError) as e:
+        logger.error(
+            f"DROPPED /stability request from ip={client_ip!r} user-agent={user_agent!r}: "
+            f"invalid payload_json ({e}); payload={payload_json!r}"
+        )
+        return {}
     logger.info(f"POST /stability from ip={client_ip!r} user-agent={user_agent!r} player={data.get('playerName')!r}")
 
     file_content = None

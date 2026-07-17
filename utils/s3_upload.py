@@ -1,8 +1,27 @@
 import os
 import uuid
 import logging
+import threading
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
+
+# boto3 clients are thread-safe and expensive to construct; build one lazily
+# and share it across upload calls.
+_s3_client = None
+_s3_client_lock = threading.Lock()
+
+def _get_s3_client():
+    global _s3_client
+    if _s3_client is None:
+        with _s3_client_lock:
+            if _s3_client is None:
+                _s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+                    aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+                    region_name=os.environ.get("AWS_REGION", "us-east-1")
+                )
+    return _s3_client
 
 def upload_to_s3(file_bytes: bytes, filename: str = None) -> str | None:
     """
@@ -16,12 +35,7 @@ def upload_to_s3(file_bytes: bytes, filename: str = None) -> str | None:
         logging.error("S3_BUCKET_NAME environment variable is not set.")
         return None
 
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
-        region_name=region
-    )
+    s3_client = _get_s3_client()
 
     # Generate a unique filename if not provided
     if not filename:
@@ -42,6 +56,6 @@ def upload_to_s3(file_bytes: bytes, filename: str = None) -> str | None:
         object_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{s3_key}"
         logging.info(f"Successfully uploaded to S3: {object_url}")
         return object_url
-    except ClientError as e:
-        logging.error(f"Failed to upload to S3: {e}")
+    except (ClientError, BotoCoreError) as e:
+        logging.error(f"Failed to upload to S3, continuing without image: {e}")
         return None

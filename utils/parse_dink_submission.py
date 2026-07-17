@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import httpx
+from starlette.concurrency import run_in_threadpool
 from pydantic import TypeAdapter
 from models.submission import Submission
 from models.notification_models import *
@@ -122,15 +123,22 @@ def parse_json_data(json_data: str, file: bytes = None) -> list[tuple[str, Disco
         submission = Submission(**base_data, extra=extra)
         return parse_login(submission)
     else:
-        print(f"Unknown type: {type}")
+        logging.warning(f"DROPPED submission player={data.get('playerName')!r}: unknown type {type!r}")
 
     return None
+
+# Shared client so webhook posts reuse connections instead of building a new
+# client (and TLS handshake) per notification.
+_webhook_client = httpx.AsyncClient(timeout=httpx.Timeout(15.0))
 
 async def parse_dink_request(payload_json: str, file: bytes) -> None:
     logging.debug(f"{payload_json}")
     if payload_json:
         try:
-            notifications: list[tuple[str, DiscordEmbedData]] = parse_json_data(payload_json, file)
+            # parse_json_data fans out to handlers that make blocking HTTP/S3
+            # calls (requests, boto3); run it in the thread pool so it can't
+            # stall the event loop and back up incoming requests.
+            notifications: list[tuple[str, DiscordEmbedData]] = await run_in_threadpool(parse_json_data, payload_json, file)
             logging.debug(notifications)
             if notifications:
                 for thread_id, notification in notifications:  # Ensure result is a list of tuples
@@ -185,12 +193,16 @@ async def parse_dink_request(payload_json: str, file: bytes) -> None:
                         "payload_json": (None, json.dumps(payload), "application/json")
                     }
                     
-                    # Send the POST request
-                    async with httpx.AsyncClient() as client:
-                        response = await client.post(url_with_thread, files=files)
+                    # Send the POST request; log and move on to the next
+                    # notification rather than dropping the rest of the batch.
+                    try:
+                        response = await _webhook_client.post(url_with_thread, files=files)
+                    except httpx.HTTPError as e:
+                        logging.error(f"DROPPED webhook notification for thread {thread_id}: {e!r}")
+                        continue
 
                     if response.status_code != 200:
-                        logging.error(f"Failed to send webhook to thread {thread_id}: {response.status_code} {response.text}")
+                        logging.error(f"DROPPED webhook notification for thread {thread_id}: {response.status_code} {response.text}")
         except Exception as e:
-            logging.error(f"Error parsing request: {e}")
-            logging.error(json.dumps(payload_json, indent=2))
+            logging.error(f"DROPPED submission, error parsing request: {e}", exc_info=True)
+            logging.error(f"Offending payload: {payload_json!r}")

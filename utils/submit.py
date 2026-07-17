@@ -8,6 +8,10 @@ import uuid
 from .trigger_dictionary import get_whitelist_data
 from utils.request_handlers.parse_response import DiscordEmbedData, DiscordEmbedField, DiscordEmbedAuthor
 
+# Shared session for connection pooling; requests.Session is thread-safe for
+# concurrent .post() calls from the worker thread pool.
+_session = requests.Session()
+
 def write(player: str, discordId: str, trigger: str, source: str, quantity: int, totalValue: int, type: str, img_path: str | None = None) -> list[tuple[str, DiscordEmbedData]]:
     request_id = str(uuid.uuid4())
     logging.info(f"write() called: request_id={request_id} player={player!r} trigger={trigger!r} source={source!r} quantity={quantity} type={type}")
@@ -25,14 +29,25 @@ def write(player: str, discordId: str, trigger: str, source: str, quantity: int,
     if img_path:
         payload["img_path"] = img_path
 
-    response = requests.post(
-        os.environ.get("API") + "/events/submit",
-        json=payload
-    )
+    try:
+        response = _session.post(
+            os.environ.get("API") + "/events/submit",
+            json=payload,
+            timeout=15
+        )
+    except requests.RequestException as e:
+        logging.error(
+            f"DROPPED submission request_id={request_id} player={player!r} trigger={trigger!r} "
+            f"source={source!r} type={type}: API request failed: {e}"
+        )
+        return []
 
     if response.status_code != 200:
-        logging.error(f"Failed to write data ({response.status_code} - {response.text})")
-        return ([], None)
+        logging.error(
+            f"DROPPED submission request_id={request_id} player={player!r} trigger={trigger!r} "
+            f"source={source!r} type={type}: API returned {response.status_code} - {response.text}"
+        )
+        return []
     
     jsonData = response.json()
     returnList: list[tuple[str, DiscordEmbedData]] = []

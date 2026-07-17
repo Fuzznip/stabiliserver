@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+import anyio.to_thread
 from dotenv import load_dotenv
 from routes.dink_submission import router as stability_router
 from routes.dink import router as dink_router
@@ -17,6 +18,9 @@ load_dotenv()
 
 async def lifespan(app: FastAPI):
     logging.info("Starting application lifespan...")
+    # Background submissions run blocking I/O in the thread pool; the default
+    # cap of 40 threads would queue bursts during events, so give it headroom.
+    anyio.to_thread.current_default_thread_limiter().total_tokens = 100
     await populate_drop_dictionary(os.environ.get("API"))
     yield  # This is where the application runs
     logging.info("Shutting down application lifespan...")

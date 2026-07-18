@@ -156,5 +156,6 @@ async def handle_request():
         "pkSkipFriendly": False,
         "lootRedirectPlayerKill": False,
         "gambleEnabled": True,
-        "metadataWebhook": os.environ.get("STALKING_WEBHOOK")
+        "metadataWebhook": os.environ.get("STALKING_WEBHOOK"),
+        "lootSourceDenylist": "\n".join(["Tarnished Ring", "Einar"])
     }

@@ -31,6 +31,7 @@ def submit_loot(rsn, discordId, source, item, itemPrice, itemQuantity, submitTyp
             img_path=img_path
         )
 
+    logging.info(f"Item not whitelisted, skipping: rsn={rsn!r} item={item!r} source={source!r}")
     return []
 
 def parse_loot(data: Submission, file: bytes = None) -> list[tuple[str, DiscordEmbedData]]:

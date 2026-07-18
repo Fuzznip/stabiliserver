@@ -79,7 +79,7 @@ async def handle_request():
         "lootSendImage": True,
         "pkSendImage": True,
         "deathNotifPvpEnabled": True,
-        "gambleInterval": 100,
+        "gambleInterval": 1,
         "combatTaskMessage": "",
         "notifyExternal": False,
         "collectionLogEnabled": True,

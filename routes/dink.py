@@ -157,5 +157,16 @@ async def handle_request():
         "lootRedirectPlayerKill": False,
         "gambleEnabled": True,
         "metadataWebhook": os.environ.get("STALKING_WEBHOOK"),
-        "lootSourceDenylist": "\n".join(["Tarnished Ring", "Einar"])
+        "lootSourceDenylist": "\n".join([
+            "Tarnished Spear",
+            "Tarnished Ring",
+            "Tarnished Bracelet",
+            "Tarnished Necklace",
+            "Tarnished Amulet",
+            "Tarnished Battleaxe",
+            "Tarnished Longsword",
+            "Tarnished Halberd",
+            "Tarnished 2h sword",
+            "Einar",
+        ])
     }

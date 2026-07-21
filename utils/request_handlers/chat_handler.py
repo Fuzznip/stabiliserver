@@ -2,6 +2,7 @@ from models.submission import Submission
 from utils.s3_upload import upload_to_s3
 from .parse_response import DiscordEmbedData
 from ..submit import write
+from ..trigger_dictionary import get_whitelist_data
 
 import logging
 
@@ -18,6 +19,13 @@ def winter_bingo_2026_check_totem_quantity(trigger: str) -> int:
 
 def process_chat_triggers(message: str) -> str:
     msg = message.lower()
+
+    # Dynamically configured CHAT triggers (e.g. conquest) — matched by
+    # substring against trigger.source, submitted as trigger.name.
+    for name, source in get_whitelist_data().messageFilters:
+        if source and source in msg:
+            return name
+
     if "rummage through the offerings" in msg:
         return "Vale Offering Rummage"
     if "molch pearl" in msg:

@@ -54,7 +54,8 @@ async def process_drop_submission(submission: DropSubmission) -> None:
         source=submission.source,
         quantity=submission.quantity,
         totalValue=0,  # No value for manual submissions
-        type="MANUAL"
+        type="MANUAL",
+        img_path=submission.attachment_url
     )
     
     # If we have notifications to send and an attachment URL, send webhook messages

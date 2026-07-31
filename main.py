@@ -6,11 +6,13 @@ from dotenv import load_dotenv
 from routes.dink_submission import router as stability_router
 from routes.dink import router as dink_router
 from routes.reload_drop_dictionary import router as item_router
+from routes.reload_collection_log import router as collection_log_router
 from routes.bot_submission import router as bot_router
 import os
 import traceback
 import logging
 from routes.reload_drop_dictionary import populate_drop_dictionary
+from utils.collection_log_dictionary import populate_collection_log_dictionary
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,7 @@ async def lifespan(app: FastAPI):
     # cap of 40 threads would queue bursts during events, so give it headroom.
     anyio.to_thread.current_default_thread_limiter().total_tokens = 100
     await populate_drop_dictionary(os.environ.get("API"))
+    populate_collection_log_dictionary(os.environ.get("API"))
     yield  # This is where the application runs
     logging.info("Shutting down application lifespan...")
 
@@ -51,4 +54,5 @@ app.add_middleware(
 app.include_router(stability_router)
 app.include_router(dink_router)
 app.include_router(item_router)
+app.include_router(collection_log_router)
 app.include_router(bot_router)

@@ -12,9 +12,9 @@ from utils.request_handlers.parse_response import DiscordEmbedData, DiscordEmbed
 # concurrent .post() calls from the worker thread pool.
 _session = requests.Session()
 
-def write(player: str, discordId: str, trigger: str, source: str, quantity: int, totalValue: int, type: str, img_path: str | None = None) -> list[tuple[str, DiscordEmbedData]]:
+def write(player: str, discordId: str, trigger: str, source: str, quantity: int, totalValue: int, type: str, img_path: str | None = None, item_id: int | None = None) -> list[tuple[str, DiscordEmbedData]]:
     request_id = str(uuid.uuid4())
-    logging.info(f"write() called: request_id={request_id} player={player!r} trigger={trigger!r} source={source!r} quantity={quantity} type={type}")
+    logging.info(f"write() called: request_id={request_id} player={player!r} trigger={trigger!r} source={source!r} quantity={quantity} type={type} item_id={item_id}")
     # Send to the endpoint "/events/submit"
     payload = {
         "rsn": player,
@@ -28,6 +28,8 @@ def write(player: str, discordId: str, trigger: str, source: str, quantity: int,
     }
     if img_path:
         payload["img_path"] = img_path
+    if item_id is not None:
+        payload["item_id"] = item_id
 
     try:
         response = _session.post(

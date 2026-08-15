@@ -53,7 +53,7 @@ def handle_request():
                 'embeds': embeds
             }
 
-            payload_link = os.environ.get("WEBHOOK") + '?thread_id=' + threadId
+            payload_link = os.environ.get("WEBHOOK_URL") + '?thread_id=' + threadId
             result = requests.post(payload_link, data = {'payload_json': json.dumps(payload)})
 
             try:

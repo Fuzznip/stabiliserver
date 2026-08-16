@@ -5,10 +5,32 @@ import logging
 from utils.request_handlers.pet_handler import submit_pet
 from utils.request_handlers.kill_count_handler import submit_kill_count
 from utils.request_handlers.parse_response import DiscordEmbedData
+from utils.s3_upload import mirror_url_to_s3
+from starlette.concurrency import run_in_threadpool
 import json
 import requests
 from datetime import datetime
 import os
+
+
+async def _durable_image(attachment_url: str | None) -> str | None:
+    """S3 copy of a bot attachment, falling back to the original URL.
+
+    Discord attachment links are signed and expire, so storing one as a proof
+    means the screenshot disappears from the site within a day. Downloading and
+    re-uploading blocks, hence the thread pool — this runs in a background task
+    on the event loop.
+    """
+    if not attachment_url:
+        return None
+
+    mirrored = await run_in_threadpool(mirror_url_to_s3, attachment_url)
+    if mirrored:
+        return mirrored
+
+    # Better a link that works today than no proof at all.
+    logging.warning(f"Could not mirror attachment to S3, storing Discord URL: {attachment_url}")
+    return attachment_url
 
 router = APIRouter()
 
@@ -46,7 +68,9 @@ async def process_drop_submission(submission: DropSubmission) -> None:
     # Use the submit function from utils.submit to send this to the API
     # We're using "MANUAL" as the type since this is from manual submission through the bot
     from utils.submit import write
-    
+
+    img_path = await _durable_image(submission.attachment_url)
+
     notifications = write(
         player=submission.user,
         discordId=submission.discord_id,
@@ -55,12 +79,12 @@ async def process_drop_submission(submission: DropSubmission) -> None:
         quantity=submission.quantity,
         totalValue=0,  # No value for manual submissions
         type="MANUAL",
-        img_path=submission.attachment_url
+        img_path=img_path
     )
-    
+
     # If we have notifications to send and an attachment URL, send webhook messages
-    if notifications and submission.attachment_url:
-        await send_webhook_notifications(notifications, submission.user, submission.item_name, submission.attachment_url)
+    if notifications and img_path:
+        await send_webhook_notifications(notifications, submission.user, submission.item_name, img_path)
 
 async def process_kc_submission(submission: KillCountSubmission) -> None:
     """
@@ -79,7 +103,8 @@ async def process_kc_submission(submission: KillCountSubmission) -> None:
         count=submission.kill_count
     )
     
-    # If we have notifications to send and an attachment URL, send webhook messages
+    # Not mirrored to S3: kill counts store no proof, so the attachment only
+    # ever decorates the Discord embed and is not worth an upload.
     if notifications and submission.attachment_url:
         await send_webhook_notifications(notifications, submission.user, f"{submission.boss_name} Kill Count: {submission.kill_count}", submission.attachment_url)
 

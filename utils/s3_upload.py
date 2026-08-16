@@ -3,6 +3,7 @@ import uuid
 import logging
 import threading
 import boto3
+import requests
 from botocore.exceptions import BotoCoreError, ClientError
 
 # boto3 clients are thread-safe and expensive to construct; build one lazily
@@ -59,3 +60,23 @@ def upload_to_s3(file_bytes: bytes, filename: str = None) -> str | None:
     except (ClientError, BotoCoreError) as e:
         logging.error(f"Failed to upload to S3, continuing without image: {e}")
         return None
+
+
+def mirror_url_to_s3(url: str) -> str | None:
+    """Copy a remote image into S3 and return the S3 URL, or None on failure.
+
+    The Dink path gets the screenshot as bytes on the request and uploads it
+    directly. Bot submissions instead arrive as a Discord attachment URL, and
+    those are signed and expire in about a day — a proof stored as one stops
+    resolving. Mirroring gives them the same durability.
+
+    Blocking: run it off the event loop.
+    """
+    try:
+        response = requests.get(url, timeout=15)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        logging.error(f"Failed to download attachment for S3 mirror, keeping original URL: {e}")
+        return None
+
+    return upload_to_s3(response.content)

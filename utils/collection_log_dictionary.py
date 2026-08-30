@@ -1,5 +1,20 @@
 import logging
+import os
 import requests
+
+_DISABLED_VALUES = {"false", "0", "no", "off"}
+
+
+def clan_collection_log_enabled() -> bool:
+    """Whether to record clan collection log drops.
+
+    Set CLAN_COLLECTION_LOG_ENABLED=false to stop tracking. This gates the CLOG
+    submissions and the S3 screenshot uploads they would otherwise trigger, so
+    turning it off drops the whole cost of the feature. Defaults to enabled, so
+    an unset environment keeps the existing behaviour.
+    """
+    value = os.environ.get("CLAN_COLLECTION_LOG_ENABLED", "true")
+    return value.strip().lower() not in _DISABLED_VALUES
 
 
 class CollectionLogData:

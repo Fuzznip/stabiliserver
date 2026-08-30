@@ -2,7 +2,10 @@ from models.submission import Submission
 from .parse_response import DiscordEmbedData
 import logging
 from ..trigger_dictionary import get_whitelist_data
-from ..collection_log_dictionary import get_collection_log_ids
+from ..collection_log_dictionary import (
+    clan_collection_log_enabled,
+    get_collection_log_ids,
+)
 from ..submit import write
 from ..s3_upload import upload_to_s3
 
@@ -19,8 +22,12 @@ def is_whitelisted(item: str, source: str) -> bool:
     return False
 
 def is_collection_log_item(item_id: int) -> bool:
-    """Check if a dropped item is tracked on the clan collection log."""
-    return item_id in get_collection_log_ids()
+    """Check if a dropped item is tracked on the clan collection log.
+
+    Returns False for everything while the feature is switched off, which is
+    what stops both the CLOG write below and the S3 upload in parse_loot.
+    """
+    return clan_collection_log_enabled() and item_id in get_collection_log_ids()
 
 # Return value in the form of a list of tuples of item names to their lists of output ids
 def submit_loot(rsn, discordId, source, item, itemPrice, itemQuantity, submitType, img_path: str | None = None) -> list[tuple[str, DiscordEmbedData]]:

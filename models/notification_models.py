@@ -44,7 +44,10 @@ class CollectionExtra(BaseModel):
 # Level Models
 class CombatLevel(BaseModel):
     value: int
-    increased: bool
+    # Dink omits this when the level-up didn't change combat level (e.g. a
+    # Sailing level). It arrived as {"value": N} with no "increased", which
+    # raised a validation error and dropped the whole submission.
+    increased: bool = False
 
 class LevelExtra(BaseModel):
     levelledSkills: dict[str, int]

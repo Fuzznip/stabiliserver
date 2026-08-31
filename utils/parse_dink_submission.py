@@ -131,6 +131,18 @@ def parse_json_data(json_data: str, file: bytes = None) -> list[tuple[str, Disco
 # client (and TLS handshake) per notification.
 _webhook_client = httpx.AsyncClient(timeout=httpx.Timeout(15.0))
 
+
+def _is_kill_count(payload_json: str) -> bool:
+    """Whether this payload is a kill count.
+
+    Malformed JSON is parse_json_data's problem to report, so a failure here
+    just means "not a kill count" and the screenshot is attached as before.
+    """
+    try:
+        return json.loads(payload_json).get("type") == "KILL_COUNT"
+    except (ValueError, AttributeError):
+        return False
+
 async def parse_dink_request(payload_json: str, file: bytes) -> None:
     logging.debug(f"{payload_json}")
     if payload_json:
@@ -140,6 +152,11 @@ async def parse_dink_request(payload_json: str, file: bytes) -> None:
             # stall the event loop and back up incoming requests.
             notifications: list[tuple[str, DiscordEmbedData]] = await run_in_threadpool(parse_json_data, payload_json, file)
             logging.debug(notifications)
+            # Dink screenshots every notification it sends, kill counts
+            # included. A KC embed fires on every single kill, so that image is
+            # noise in the thread — post it for drops only. The handlers still
+            # get the raw file, which is what parse_loot/parse_pet upload to S3.
+            embed_file = None if _is_kill_count(payload_json) else file
             if notifications:
                 for thread_id, notification in notifications:  # Ensure result is a list of tuples
                     webhook_url = os.getenv("WEBHOOK_URL")
@@ -178,7 +195,7 @@ async def parse_dink_request(payload_json: str, file: bytes) -> None:
                         ]
                     
                     # If an image is provided, include it in the embed
-                    if file:
+                    if embed_file:
                         embed["image"] = {"url": "attachment://image.png"}
                     
                     payload = {
@@ -188,8 +205,8 @@ async def parse_dink_request(payload_json: str, file: bytes) -> None:
                     # Prepare files for the request
                     files = {
                         "payload_json": (None, json.dumps(payload), "application/json"),
-                        "file": ("image.png", file, "image/png")
-                    } if file else {
+                        "file": ("image.png", embed_file, "image/png")
+                    } if embed_file else {
                         "payload_json": (None, json.dumps(payload), "application/json")
                     }
                     

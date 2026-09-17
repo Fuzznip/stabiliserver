@@ -2,10 +2,6 @@ from models.submission import Submission
 from .parse_response import DiscordEmbedData
 import logging
 from ..trigger_dictionary import get_whitelist_data
-from ..collection_log_dictionary import (
-    clan_collection_log_enabled,
-    get_collection_log_ids,
-)
 from ..submit import write
 from ..s3_upload import upload_to_s3
 
@@ -20,14 +16,6 @@ def is_whitelisted(item: str, source: str) -> bool:
     if query in whitelistData.triggers:
         return True
     return False
-
-def is_collection_log_item(item_id: int) -> bool:
-    """Check if a dropped item is tracked on the clan collection log.
-
-    Returns False for everything while the feature is switched off, which is
-    what stops both the CLOG write below and the S3 upload in parse_loot.
-    """
-    return clan_collection_log_enabled() and item_id in get_collection_log_ids()
 
 # Return value in the form of a list of tuples of item names to their lists of output ids
 def submit_loot(rsn, discordId, source, item, itemPrice, itemQuantity, submitType, img_path: str | None = None) -> list[tuple[str, DiscordEmbedData]]:
@@ -54,15 +42,9 @@ def parse_loot(data: Submission, file: bytes = None) -> list[tuple[str, DiscordE
     source = data.extra.source
     items = data.extra.items
 
-    # Upload to S3 once if file provided and any item is a whitelisted drop or a
-    # collection log item (both attach the screenshot).
     img_path = None
     if file:
-        has_relevant_item = any(
-            is_whitelisted(item.name, source) or is_collection_log_item(item.id)
-            for item in items
-        )
-        if has_relevant_item:
+        if any(is_whitelisted(item.name, source) for item in items):
             img_path = upload_to_s3(file)
 
     for item in items:
@@ -73,20 +55,5 @@ def parse_loot(data: Submission, file: bytes = None) -> list[tuple[str, DiscordE
         # Event drops (whitelist-gated).
         for notificationData in submit_loot(rsn, discordId, source, itemName, itemPrice, itemQuantity, "LOOT", img_path):
             notifications.append(notificationData)
-
-        # Clan collection log: forward every received clog item (independent of
-        # the event whitelist) so the site tracks any clog drop from any member.
-        if is_collection_log_item(item.id):
-            write(
-                player=rsn,
-                discordId=discordId,
-                trigger=itemName,
-                source=source,
-                quantity=itemQuantity,
-                totalValue=itemPrice * itemQuantity,
-                type="CLOG",
-                img_path=img_path,
-                item_id=item.id,
-            )
 
     return notifications

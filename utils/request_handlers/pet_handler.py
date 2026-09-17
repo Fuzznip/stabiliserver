@@ -1,8 +1,4 @@
 from models.submission import Submission
-from ..collection_log_dictionary import (
-    clan_collection_log_enabled,
-    get_collection_log_item_id,
-)
 from ..submit import write
 from ..s3_upload import upload_to_s3
 from .parse_response import DiscordEmbedData
@@ -46,24 +42,5 @@ def parse_pet(data: Submission, file: bytes = None) -> list[tuple[str, DiscordEm
 
     for notification_data in submit_pet(rsn, discordId, pet_name, img_path):
         notifications.append(notification_data)
-
-    # Pets never come through the LOOT notifier, so the collection log branch
-    # in parse_loot never sees them. PetExtra has no itemId, so resolve by name;
-    # unknown or non-log names simply don't resolve.
-    item_id = (
-        get_collection_log_item_id(pet_name) if clan_collection_log_enabled() else None
-    )
-    if item_id is not None:
-        write(
-            player=rsn,
-            discordId=discordId,
-            trigger=pet_name,
-            source="PET",
-            quantity=1,
-            totalValue=0,
-            type="CLOG",
-            img_path=img_path,
-            item_id=item_id,
-        )
 
     return notifications

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request
 from utils.trigger_dictionary import set_whitelist_data, WhitelistData
+from utils.backend import BACKEND_HEADERS
 from dotenv import load_dotenv
 load_dotenv()
 import os
@@ -17,7 +18,7 @@ router = APIRouter()
 async def populate_drop_dictionary(api_url: str):
     logging.info("Populating drop dictionary...")
     try:
-        data = requests.get(api_url + "/events/whitelist")
+        data = requests.get(api_url + "/events/whitelist", headers=BACKEND_HEADERS)
         if data.status_code != 200:
             logging.error(f"Failed to fetch item list {data.status_code}: {data.text}")
             return None

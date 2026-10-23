@@ -6,11 +6,13 @@ import logging
 import uuid
 
 from .trigger_dictionary import get_whitelist_data
+from .backend import BACKEND_HEADERS
 from utils.request_handlers.parse_response import DiscordEmbedData, DiscordEmbedField, DiscordEmbedAuthor
 
 # Shared session for connection pooling; requests.Session is thread-safe for
 # concurrent .post() calls from the worker thread pool.
 _session = requests.Session()
+_session.headers.update(BACKEND_HEADERS)
 
 def write(player: str, discordId: str, trigger: str, source: str, quantity: int, totalValue: int, type: str, img_path: str | None = None, item_id: int | None = None) -> list[tuple[str, DiscordEmbedData]]:
     request_id = str(uuid.uuid4())
